@@ -4,8 +4,12 @@ Maintains stable track_ids across frames per camera feed using ByteTrack
 """
 
 import logging
+import warnings
 from typing import Optional
 import numpy as np
+
+# Suppress supervision internal ByteTrack transition deprecation warning
+warnings.filterwarnings("ignore", category=FutureWarning, module="supervision.*")
 
 try:
     import supervision as sv

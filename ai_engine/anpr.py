@@ -139,36 +139,46 @@ class ANPRPipeline:
         Run OCR on plate crop and clean text.
         Returns: (plate_text, confidence)
         """
-        if plate_crop.size == 0:
+        if plate_crop is None or plate_crop.size == 0:
             return "", 0.0
 
-        if self.ocr_engine == "pytesseract":
-            import pytesseract
-            prep = self.preprocess_plate_image(plate_crop)
-            config_str = "-c tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 --psm 7"
-            text = pytesseract.image_to_string(prep, config=config_str).strip()
-            clean_text = "".join(c for c in text.upper() if c.isalnum())
-            conf = 0.85 if clean_text else 0.0
-            return clean_text, conf
-
-        elif hasattr(self.ocr_engine, "readtext"):
+        if hasattr(self.ocr_engine, "readtext"):
             # EasyOCR
             try:
-                results = self.ocr_engine.readtext(plate_crop)
+                # Convert BGR to RGB for EasyOCR
+                if len(plate_crop.shape) == 3 and plate_crop.shape[2] == 3:
+                    rgb_crop = cv2.cvtColor(plate_crop, cv2.COLOR_BGR2RGB)
+                else:
+                    rgb_crop = plate_crop
+
+                results = self.ocr_engine.readtext(rgb_crop)
                 if not results:
-                    # Retry with preprocessed image
+                    # Retry with preprocessed binary image
                     prep = self.preprocess_plate_image(plate_crop)
                     results = self.ocr_engine.readtext(prep)
 
                 if results:
                     # Combine text fragments sorted left-to-right
                     sorted_res = sorted(results, key=lambda r: r[0][0][0])
-                    combined_text = "".join([r[1] for r in sorted_res])
+                    texts = [r[1] for r in sorted_res]
+                    combined_text = "".join(texts)
                     clean_text = "".join(c for c in combined_text.upper() if c.isalnum())
                     avg_conf = float(np.mean([r[2] for r in sorted_res])) if sorted_res else 0.0
                     return clean_text, float(round(avg_conf, 4))
             except Exception as e:
                 logger.error(f"EasyOCR extraction error: {e}")
+
+        elif self.ocr_engine == "pytesseract":
+            try:
+                import pytesseract
+                prep = self.preprocess_plate_image(plate_crop)
+                config_str = "-c tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 --psm 7"
+                text = pytesseract.image_to_string(prep, config=config_str).strip()
+                clean_text = "".join(c for c in text.upper() if c.isalnum())
+                conf = 0.85 if clean_text else 0.0
+                return clean_text, conf
+            except Exception:
+                pass
 
         return "", 0.0
 
