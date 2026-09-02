@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  backend:
+    build: .
+    container_name: bavis_backend
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://bavis_user:bavis_password@db:5432/bavis_db
+      - REDIS_URL=redis://redis:6379/0
+      - SECRET_KEY=bavis-super-secret-key-change-this-in-production-sih2026
+      - USE_MOCK_AI=true
+    volumes:
+      - ./data:/app/data
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    restart: always
+
+  db:
+    image: postgres:15-alpine
+    container_name: bavis_postgres
+    environment:
+      - POSTGRES_USER=bavis_user
+      - POSTGRES_PASSWORD=bavis_password
+      - POSTGRES_DB=bavis_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bavis_user -d bavis_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: always
+
+  redis:
+    image: redis:7-alpine
+    container_name: bavis_redis
+    ports:
+      - "6379:6379"
+    restart: always
+
+volumes:
+  postgres_data:
