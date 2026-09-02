@@ -4,6 +4,8 @@ BAVIS Intelligence / Event & Risk Engine (Workstream E)
 
 from intelligence.schemas import DetectionEvent, ZoneConfig, AlertEvent, SeverityLevel, RuleType
 from intelligence.engine import IntelligenceEngine
+from intelligence.db import DatabaseAdapter
+from intelligence.service import run_service
 
 __all__ = [
     "DetectionEvent",
@@ -12,4 +14,6 @@ __all__ = [
     "SeverityLevel",
     "RuleType",
     "IntelligenceEngine",
+    "DatabaseAdapter",
+    "run_service",
 ]

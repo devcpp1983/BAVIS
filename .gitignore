@@ -15,4 +15,5 @@ build/
 demo_outputs/
 yolov8n.pt
 *.pt
+*.part
 *.egg-info/
