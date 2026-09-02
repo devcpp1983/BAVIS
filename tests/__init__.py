@@ -1,3 +1,3 @@
 """
-BAVIS AI / CV Test Suite
+BAVIS Unified Test Suite Package Initializer
 """
