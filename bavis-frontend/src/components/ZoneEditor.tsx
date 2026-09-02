@@ -128,25 +128,25 @@ export const ZoneEditor: React.FC<ZoneEditorProps> = ({ initialCamera }) => {
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 h-[calc(100vh-4.5rem)] p-4 overflow-hidden">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 h-full overflow-hidden select-none font-mono">
       <div className="lg:col-span-8 flex flex-col h-full overflow-hidden">
-        <div className="flex items-center justify-between px-4 py-2.5 bg-slate-900/90 border border-cyan-900/40 rounded-xl mb-3 glass-panel">
-          <div className="flex items-center gap-3">
-            <Map className="w-5 h-5 text-cyan-400" />
-            <h2 className="text-sm font-black tracking-wider text-slate-100 uppercase">
+        <div className="flex items-center justify-between px-3 py-1.5 bg-[var(--bg-panel-elevated)] border border-[var(--border-tactical)] rounded mb-2.5 transition-colors">
+          <div className="flex items-center gap-2">
+            <Map className="w-4 h-4 text-cyan-500" />
+            <h2 className="text-xs font-bold tracking-wider text-[var(--text-primary)] uppercase">
               VIRTUAL FENCE & RESTRICTED ZONE EDITOR
             </h2>
           </div>
 
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-mono text-slate-400">SELECT FEED:</span>
+          <div className="flex items-center gap-2 text-xs">
+            <span className="text-[var(--text-secondary)]">SELECT FEED:</span>
             <select
               value={selectedCamera?.camera_id || ''}
               onChange={(e) => {
                 const found = cameras.find((c) => c.camera_id === e.target.value);
                 if (found) setSelectedCamera(found);
               }}
-              className="bg-slate-950 border border-slate-800 rounded px-2.5 py-1 text-slate-200 text-xs font-bold font-mono focus:outline-none"
+              className="bg-[var(--bg-panel-highlight)] border border-[var(--border-tactical)] rounded px-2 py-0.5 text-[var(--text-primary)] text-xs font-bold focus:outline-none cursor-pointer"
             >
               {cameras.map((cam) => (
                 <option key={cam.camera_id} value={cam.camera_id}>
@@ -157,7 +157,7 @@ export const ZoneEditor: React.FC<ZoneEditorProps> = ({ initialCamera }) => {
           </div>
         </div>
 
-        <div className="relative flex-1 bg-black border border-cyan-900/50 rounded-xl overflow-hidden glass-panel">
+        <div className="relative flex-1 bg-black border border-[var(--border-tactical)] rounded overflow-hidden">
           {selectedCamera ? (
             <div
               ref={containerRef}
@@ -170,10 +170,10 @@ export const ZoneEditor: React.FC<ZoneEditorProps> = ({ initialCamera }) => {
                 {points.length > 0 && (
                   <polygon
                     points={points.map((p) => `${p.x * 100}% ${p.y * 100}%`).join(' ')}
-                    fill={severity === 'high' ? 'rgba(239, 68, 68, 0.25)' : 'rgba(245, 158, 11, 0.25)'}
+                    fill={severity === 'high' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(245, 158, 11, 0.2)'}
                     stroke={severity === 'high' ? '#ef4444' : '#f59e0b'}
-                    strokeWidth="3"
-                    strokeDasharray="6 4"
+                    strokeWidth="2"
+                    strokeDasharray="5 3"
                   />
                 )}
 
@@ -182,7 +182,7 @@ export const ZoneEditor: React.FC<ZoneEditorProps> = ({ initialCamera }) => {
                     <circle
                       cx={`${p.x * 100}%`}
                       cy={`${p.y * 100}%`}
-                      r="7"
+                      r="6"
                       fill={severity === 'high' ? '#ef4444' : '#f59e0b'}
                       stroke="#ffffff"
                       strokeWidth="2"
@@ -202,23 +202,23 @@ export const ZoneEditor: React.FC<ZoneEditorProps> = ({ initialCamera }) => {
                 ))}
               </svg>
 
-              <div className="absolute top-3 left-3 bg-slate-950/80 border border-slate-800 rounded px-3 py-1.5 text-[11px] font-mono text-cyan-300 z-40">
+              <div className="absolute top-2.5 left-2.5 bg-[#060a0f]/90 border border-[#1d2d3e] rounded px-2.5 py-1 text-[10px] text-cyan-300 z-40">
                 <span>{canEditZones ? 'CLICK ON VIDEO FRAME TO PLACE BOUNDARY VERTICES' : 'VIEW ONLY MODE (SUPERVISOR REQUIRED)'}</span>
               </div>
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center h-full text-slate-500 font-mono text-sm">
+            <div className="flex flex-col items-center justify-center h-full text-[var(--text-secondary)] text-xs">
               Loading camera feed context...
             </div>
           )}
         </div>
       </div>
 
-      <div className="lg:col-span-4 flex flex-col h-full bg-slate-950/90 border border-cyan-900/40 rounded-xl overflow-hidden glass-panel p-4 space-y-4">
-        <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-          <h3 className="text-sm font-bold text-slate-100 uppercase tracking-wide">ZONE SPECIFICATION</h3>
+      <div className="lg:col-span-4 flex flex-col h-full bg-[var(--bg-panel)] border border-[var(--border-tactical)] rounded p-3 space-y-3 transition-colors">
+        <div className="flex items-center justify-between pb-2 border-b border-[var(--border-tactical)]">
+          <h3 className="text-xs font-bold text-[var(--text-primary)] uppercase tracking-wide">ZONE SPECIFICATION</h3>
           {!canEditZones && (
-            <span className="flex items-center gap-1 text-[10px] font-mono bg-red-950/80 border border-red-800/80 text-red-300 px-2 py-0.5 rounded">
+            <span className="flex items-center gap-1 text-[9px] bg-red-950 border border-red-800 text-red-300 px-1.5 py-0.2 rounded">
               <Lock className="w-3 h-3" />
               LOCKED ({role.toUpperCase()})
             </span>
@@ -227,36 +227,36 @@ export const ZoneEditor: React.FC<ZoneEditorProps> = ({ initialCamera }) => {
 
         {feedback && (
           <div
-            className={`p-3 rounded-lg border text-xs font-mono flex items-start gap-2 ${
+            className={`p-2 rounded border text-[11px] flex items-start gap-1.5 ${
               feedback.type === 'success'
                 ? 'bg-emerald-950/80 border-emerald-500/60 text-emerald-300'
                 : 'bg-red-950/80 border-red-500/60 text-red-300'
             }`}
           >
-            {feedback.type === 'success' ? <CheckCircle className="w-4 h-4 shrink-0" /> : <ShieldAlert className="w-4 h-4 shrink-0" />}
+            {feedback.type === 'success' ? <CheckCircle className="w-3.5 h-3.5 shrink-0" /> : <ShieldAlert className="w-3.5 h-3.5 shrink-0" />}
             <span>{feedback.message}</span>
           </div>
         )}
 
-        <div className="space-y-3.5 flex-1 overflow-y-auto pr-1">
+        <div className="space-y-3 flex-1 overflow-y-auto pr-1 text-xs">
           <div>
-            <label className="block text-xs font-mono text-slate-400 mb-1">ZONE IDENTIFIER / NAME</label>
+            <label className="block text-[10px] text-[var(--text-secondary)] mb-0.5 uppercase">ZONE NAME</label>
             <input
               type="text"
               disabled={!canEditZones}
               value={zoneName}
               onChange={(e) => setZoneName(e.target.value)}
-              className="w-full bg-slate-900 border border-slate-800 rounded px-3 py-1.5 text-xs text-slate-200 font-mono focus:outline-none focus:border-cyan-500 disabled:opacity-50"
+              className="w-full bg-[var(--bg-panel-highlight)] border border-[var(--border-tactical)] rounded px-2.5 py-1 text-xs text-[var(--text-primary)] focus:outline-none focus:border-cyan-500 disabled:opacity-50"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-mono text-slate-400 mb-1">RULE TYPE EVALUATOR</label>
+            <label className="block text-[10px] text-[var(--text-secondary)] mb-0.5 uppercase">RULE TYPE EVALUATOR</label>
             <select
               disabled={!canEditZones}
               value={ruleType}
               onChange={(e) => setRuleType(e.target.value as RuleType)}
-              className="w-full bg-slate-900 border border-slate-800 rounded px-3 py-1.5 text-xs text-slate-200 font-mono focus:outline-none focus:border-cyan-500 disabled:opacity-50"
+              className="w-full bg-[var(--bg-panel-highlight)] border border-[var(--border-tactical)] rounded px-2.5 py-1 text-xs text-[var(--text-primary)] focus:outline-none focus:border-cyan-500 disabled:opacity-50 cursor-pointer"
             >
               <option value="virtual_fence_breach">Virtual Fence Perimeter Breach</option>
               <option value="anpr_unlisted_vehicle">ANPR Unlisted Vehicle Check</option>
@@ -266,14 +266,14 @@ export const ZoneEditor: React.FC<ZoneEditorProps> = ({ initialCamera }) => {
           </div>
 
           <div>
-            <label className="block text-xs font-mono text-slate-400 mb-1">ALERT SEVERITY LEVEL</label>
+            <label className="block text-[10px] text-[var(--text-secondary)] mb-0.5 uppercase">SEVERITY LEVEL</label>
             <select
               disabled={!canEditZones}
               value={severity}
               onChange={(e) => setSeverity(e.target.value as SeverityLevel)}
-              className="w-full bg-slate-900 border border-slate-800 rounded px-3 py-1.5 text-xs text-slate-200 font-mono focus:outline-none focus:border-cyan-500 disabled:opacity-50"
+              className="w-full bg-[var(--bg-panel-highlight)] border border-[var(--border-tactical)] rounded px-2.5 py-1 text-xs text-[var(--text-primary)] focus:outline-none focus:border-cyan-500 disabled:opacity-50 cursor-pointer"
             >
-              <option value="high">HIGH (Immediate QRT Dispatch)</option>
+              <option value="high">HIGH (Critical Alert)</option>
               <option value="medium">MEDIUM (Operator Warning)</option>
               <option value="low">LOW (Audit Event)</option>
             </select>
@@ -281,33 +281,33 @@ export const ZoneEditor: React.FC<ZoneEditorProps> = ({ initialCamera }) => {
 
           {ruleType === 'dwell_time_exceeded' && (
             <div>
-              <label className="block text-xs font-mono text-slate-400 mb-1">DWELL TIME THRESHOLD (SECONDS)</label>
+              <label className="block text-[10px] text-[var(--text-secondary)] mb-0.5 uppercase">DWELL TIME THRESHOLD (SEC)</label>
               <input
                 type="number"
                 disabled={!canEditZones}
                 value={dwellThreshold}
                 onChange={(e) => setDwellThreshold(Number(e.target.value))}
-                className="w-full bg-slate-900 border border-slate-800 rounded px-3 py-1.5 text-xs text-slate-200 font-mono focus:outline-none focus:border-cyan-500 disabled:opacity-50"
+                className="w-full bg-[var(--bg-panel-highlight)] border border-[var(--border-tactical)] rounded px-2.5 py-1 text-xs text-[var(--text-primary)] focus:outline-none focus:border-cyan-500 disabled:opacity-50"
               />
             </div>
           )}
 
           <div>
             <div className="flex items-center justify-between mb-1">
-              <label className="block text-xs font-mono text-slate-400">BOUNDARY POINTS ({points.length})</label>
+              <label className="block text-[10px] text-[var(--text-secondary)] uppercase">VERTICES ({points.length})</label>
               {canEditZones && (
                 <button
                   onClick={handleClearPoints}
-                  className="text-[10px] font-mono text-red-400 hover:underline flex items-center gap-1"
+                  className="text-[10px] text-red-500 hover:underline flex items-center gap-1 cursor-pointer"
                 >
                   <Trash2 className="w-3 h-3" /> CLEAR
                 </button>
               )}
             </div>
-            <div className="bg-slate-900/80 border border-slate-800 rounded p-2 max-h-32 overflow-y-auto space-y-1 font-mono text-[11px] text-slate-300">
+            <div className="bg-[var(--bg-panel-highlight)] border border-[var(--border-tactical)] rounded p-1.5 max-h-28 overflow-y-auto space-y-1 text-[10px] text-[var(--text-primary)]">
               {points.map((p, idx) => (
-                <div key={idx} className="flex justify-between border-b border-slate-800/50 pb-0.5">
-                  <span className="text-cyan-400">Vertex P{idx + 1}</span>
+                <div key={idx} className="flex justify-between border-b border-[var(--border-tactical)] pb-0.5">
+                  <span className="text-cyan-500">P{idx + 1}</span>
                   <span>X: {p.x} | Y: {p.y}</span>
                 </div>
               ))}
@@ -315,14 +315,14 @@ export const ZoneEditor: React.FC<ZoneEditorProps> = ({ initialCamera }) => {
           </div>
         </div>
 
-        <div className="pt-3 border-t border-slate-800 space-y-2">
+        <div className="pt-2 border-t border-[var(--border-tactical)]">
           <button
             onClick={handleSaveZone}
             disabled={!canEditZones || saving}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-cyan-950 border border-cyan-600/70 text-cyan-200 text-xs font-mono font-bold hover:bg-cyan-900 transition-all disabled:opacity-40 shadow-[0_0_15px_rgba(6,182,212,0.2)]"
+            className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded bg-cyan-950 border border-cyan-600/70 text-cyan-200 text-xs font-bold hover:bg-cyan-900 transition-all disabled:opacity-40 cursor-pointer"
           >
-            <Save className="w-4 h-4" />
-            <span>{saving ? 'SAVING TO ENGINE...' : 'DEPLOY ZONE TO AI ENGINE (POST /zones)'}</span>
+            <Save className="w-3.5 h-3.5" />
+            <span>{saving ? 'SAVING TO ENGINE...' : 'SAVE ZONE (POST /zones)'}</span>
           </button>
         </div>
       </div>

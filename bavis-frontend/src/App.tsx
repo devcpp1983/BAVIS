@@ -1,17 +1,21 @@
 import { useState } from 'react';
 import { AuthProvider } from './context/AuthContext';
 import { AlertProvider } from './context/AlertContext';
-import { Header } from './components/Header';
+import { ThemeProvider } from './context/ThemeContext';
+import { CommandShell } from './components/CommandShell';
+import type { ActiveTab } from './components/CommandRail';
+import { CommandOverview } from './components/CommandOverview';
 import { LiveMatrix } from './components/LiveMatrix';
-import { ZoneEditor } from './components/ZoneEditor';
 import { IncidentTimeline } from './components/IncidentTimeline';
 import { EventSearch } from './components/EventSearch';
+import { ZoneEditor } from './components/ZoneEditor';
+import { SystemHealthPanel } from './components/SystemHealthPanel';
 import { AdminControls } from './components/AdminControls';
 import { DemoControlWidget } from './components/DemoControlWidget';
 import type { Camera } from './types/bavis';
 
 export function App() {
-  const [activeTab, setActiveTab] = useState<'matrix' | 'zones' | 'timeline' | 'search' | 'admin'>('matrix');
+  const [activeTab, setActiveTab] = useState<ActiveTab>('overview');
   const [zoneCameraContext, setZoneCameraContext] = useState<Camera | null>(null);
 
   const handleOpenZoneEditorForCam = (camera: Camera) => {
@@ -20,27 +24,39 @@ export function App() {
   };
 
   return (
-    <AuthProvider>
-      <AlertProvider>
-        <div className="min-h-screen bg-radar-grid text-slate-100 flex flex-col font-sans selection:bg-cyan-500 selection:text-slate-950">
-          <Header activeTab={activeTab} setActiveTab={setActiveTab} />
+    <ThemeProvider>
+      <AuthProvider>
+        <AlertProvider>
+          <CommandShell activeTab={activeTab} setActiveTab={setActiveTab}>
+            {activeTab === 'overview' && (
+              <CommandOverview
+                onNavigateToCameraMatrix={() => setActiveTab('matrix')}
+                onNavigateToIncidents={() => setActiveTab('incidents')}
+                onOpenZoneEditorForCam={handleOpenZoneEditorForCam}
+              />
+            )}
 
-          <main className="flex-1 overflow-hidden">
             {activeTab === 'matrix' && (
               <LiveMatrix onOpenZoneEditor={handleOpenZoneEditorForCam} />
             )}
+
+            {activeTab === 'incidents' && <IncidentTimeline />}
+
+            {activeTab === 'search' && <EventSearch />}
+
             {activeTab === 'zones' && (
               <ZoneEditor initialCamera={zoneCameraContext} />
             )}
-            {activeTab === 'timeline' && <IncidentTimeline />}
-            {activeTab === 'search' && <EventSearch />}
-            {activeTab === 'admin' && <AdminControls />}
-          </main>
 
-          <DemoControlWidget />
-        </div>
-      </AlertProvider>
-    </AuthProvider>
+            {activeTab === 'health' && <SystemHealthPanel />}
+
+            {activeTab === 'admin' && <AdminControls />}
+
+            <DemoControlWidget />
+          </CommandShell>
+        </AlertProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 

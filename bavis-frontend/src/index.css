@@ -1,50 +1,108 @@
 @import "tailwindcss";
 
 @layer base {
-  :root {
-    --bg-tactical: #060913;
-    --card-tactical: rgba(13, 19, 36, 0.75);
-    --border-tactical: rgba(30, 58, 95, 0.4);
-    --accent-cyan: #06b6d4;
-    --accent-emerald: #10b981;
-    --severity-high: #ef4444;
-    --severity-med: #f59e0b;
-    --severity-low: #3b82f6;
+  :root, [data-theme='dark'] {
+    --bg-tactical: #060a0f;
+    --bg-panel: #0a1017;
+    --bg-panel-elevated: #0e1722;
+    --bg-panel-highlight: #14202e;
+
+    --border-tactical: #1d2d3e;
+    --border-subtle: #14202e;
+    --border-highlight: #283a4f;
+
+    --text-primary: #e6edf3;
+    --text-secondary: #8b9eb0;
+    --text-muted: #526577;
+
+    --status-online: #10b981;
+    --status-warning: #f59e0b;
+    --status-critical: #ef4444;
+    --status-info: #06b6d4;
+
+    /* Subtle Indian Tricolor Accents */
+    --tri-saffron: #f97316;
+    --tri-white: #f8fafc;
+    --tri-green: #10b981;
+  }
+
+  [data-theme='light'] {
+    --bg-tactical: #e8edf3;
+    --bg-panel: #ffffff;
+    --bg-panel-elevated: #f1f5f9;
+    --bg-panel-highlight: #e2e8f0;
+
+    --border-tactical: #cbd5e1;
+    --border-subtle: #e2e8f0;
+    --border-highlight: #94a3b8;
+
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #64748b;
+
+    --status-online: #059669;
+    --status-warning: #d97706;
+    --status-critical: #dc2626;
+    --status-info: #0284c7;
+
+    /* Subtle Indian Tricolor Accents */
+    --tri-saffron: #ea580c;
+    --tri-white: #ffffff;
+    --tri-green: #16a34a;
   }
 
   body {
     background-color: var(--bg-tactical);
-    color: #e2e8f0;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    color: var(--text-primary);
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     overflow-x: hidden;
+    letter-spacing: -0.01em;
+    transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+  }
+
+  /* Universal Monospace Class for Technical Telemetry */
+  .font-mono {
+    font-family: 'IBM Plex Mono', 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   }
 }
 
 /* Custom Tactical Background Pattern */
 .bg-radar-grid {
+  background-color: var(--bg-tactical);
   background-image: 
-    linear-gradient(rgba(14, 116, 144, 0.07) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(14, 116, 144, 0.07) 1px, transparent 1px);
-  background-size: 24px 24px;
+    linear-gradient(rgba(14, 116, 144, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(14, 116, 144, 0.06) 1px, transparent 1px);
+  background-size: 20px 20px;
 }
 
-/* Glassmorphism Panel */
-.glass-panel {
-  background: rgba(11, 16, 30, 0.82);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(56, 189, 248, 0.15);
+/* Operational Command Console Panels */
+.c2-panel {
+  background-color: var(--bg-panel);
+  border: 1px solid var(--border-tactical);
+  border-radius: 4px;
 }
 
-.glass-panel-hover {
-  transition: all 0.2s ease-in-out;
-}
-.glass-panel-hover:hover {
-  border-color: rgba(56, 189, 248, 0.35);
-  box-shadow: 0 0 15px rgba(6, 182, 212, 0.15);
+.c2-panel-header {
+  background-color: var(--bg-panel-elevated);
+  border-bottom: 1px solid var(--border-tactical);
+  padding: 6px 12px;
 }
 
-/* CRT / Surveillance Scanline effect (subtle) */
+.c2-panel-hover {
+  transition: all 0.15s ease-in-out;
+}
+.c2-panel-hover:hover {
+  border-color: var(--border-highlight);
+  box-shadow: 0 0 12px rgba(6, 182, 212, 0.1);
+}
+
+/* Subtle Indian Tricolor Header Accent Line */
+.tricolor-stripe {
+  height: 2px;
+  background: linear-gradient(90deg, var(--tri-saffron) 0%, var(--tri-white) 50%, var(--tri-green) 100%);
+}
+
+/* Subtle CRT / Surveillance Scanline effect */
 .scanline-overlay {
   position: relative;
 }
@@ -53,44 +111,44 @@
   display: block;
   position: absolute;
   top: 0; left: 0; bottom: 0; right: 0;
-  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%);
   background-size: 100% 4px;
   z-index: 10;
   pointer-events: none;
-  opacity: 0.35;
+  opacity: 0.2;
 }
 
-/* Pulse Animations */
-@keyframes pulse-high {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.6); }
-  50% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+/* Precision Pulse Animations */
+@keyframes pulse-critical {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5); }
+  50% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
 }
 
-@keyframes pulse-med {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.6); }
-  50% { box-shadow: 0 0 0 6px rgba(245, 158, 11, 0); }
+@keyframes pulse-warning {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.5); }
+  50% { box-shadow: 0 0 0 5px rgba(245, 158, 11, 0); }
 }
 
-.animate-pulse-high {
-  animation: pulse-high 1.8s infinite;
+.animate-pulse-critical {
+  animation: pulse-critical 1.6s infinite;
 }
 
-.animate-pulse-med {
-  animation: pulse-med 2.2s infinite;
+.animate-pulse-warning {
+  animation: pulse-warning 2s infinite;
 }
 
-/* Custom Scrollbar */
+/* Custom Tactical Scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 ::-webkit-scrollbar-track {
-  background: rgba(7, 10, 18, 0.8);
+  background: var(--bg-tactical);
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(30, 58, 138, 0.5);
-  border-radius: 3px;
+  background: var(--border-tactical);
+  border-radius: 2px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(6, 182, 212, 0.6);
+  background: #06b6d4;
 }

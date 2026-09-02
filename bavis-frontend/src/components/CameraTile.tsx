@@ -25,27 +25,27 @@ export const CameraTile: React.FC<CameraTileProps> = ({
   const camDetections = detections.filter((d) => d.camera_id === camera.camera_id);
 
   return (
-    <div className="group relative flex flex-col bg-slate-950/90 border border-cyan-900/40 rounded-xl overflow-hidden glass-panel glass-panel-hover">
+    <div className="group relative flex flex-col bg-[var(--bg-panel)] border border-[var(--border-tactical)] rounded overflow-hidden select-none h-full hover:border-[var(--border-highlight)] transition-all">
       {/* Tile Header Bar */}
-      <div className="flex items-center justify-between px-3 py-2 bg-slate-900/90 border-b border-cyan-900/30">
+      <div className="flex items-center justify-between px-2.5 py-1.5 bg-[var(--bg-panel-elevated)] border-b border-[var(--border-tactical)] transition-colors">
         <div className="flex items-center gap-2 overflow-hidden">
-          <span className="flex h-2 w-2 relative">
+          <span className="flex h-2 w-2 relative shrink-0">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
           </span>
-          <span className="text-xs font-bold text-slate-100 truncate">{camera.name}</span>
-          <span className="text-[10px] font-mono text-cyan-400/80 bg-cyan-950/60 px-1.5 py-0.5 rounded border border-cyan-900/50">
+          <span className="text-xs font-bold font-mono text-[var(--text-primary)] truncate">{camera.name}</span>
+          <span className="text-[9px] font-mono text-cyan-600 bg-cyan-950/40 px-1 py-0.2 rounded border border-cyan-800/40">
             {camera.location_code}
           </span>
         </div>
 
         {/* Action Controls & Vision Mode Toggles */}
-        <div className="flex items-center gap-1.5">
-          <div className="flex items-center bg-slate-950 border border-slate-800 rounded p-0.5">
+        <div className="flex items-center gap-1">
+          <div className="flex items-center bg-[var(--bg-panel-highlight)] border border-[var(--border-tactical)] rounded p-0.5">
             <button
               onClick={() => setCurrentMode('day')}
-              className={`p-1 rounded text-[10px] ${
-                currentMode === 'day' ? 'bg-amber-950 text-amber-400 font-bold' : 'text-slate-500 hover:text-slate-300'
+              className={`p-1 rounded text-[9px] cursor-pointer ${
+                currentMode === 'day' ? 'bg-amber-950 text-amber-400 font-bold border border-amber-800/50' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
               }`}
               title="Day Optical Mode"
             >
@@ -53,8 +53,8 @@ export const CameraTile: React.FC<CameraTileProps> = ({
             </button>
             <button
               onClick={() => setCurrentMode('night')}
-              className={`p-1 rounded text-[10px] ${
-                currentMode === 'night' ? 'bg-emerald-950 text-emerald-400 font-bold' : 'text-slate-500 hover:text-slate-300'
+              className={`p-1 rounded text-[9px] cursor-pointer ${
+                currentMode === 'night' ? 'bg-emerald-950 text-emerald-400 font-bold border border-emerald-800/50' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
               }`}
               title="Night Vision Mode"
             >
@@ -62,8 +62,8 @@ export const CameraTile: React.FC<CameraTileProps> = ({
             </button>
             <button
               onClick={() => setCurrentMode('thermal')}
-              className={`p-1 rounded text-[10px] ${
-                currentMode === 'thermal' ? 'bg-cyan-950 text-cyan-400 font-bold' : 'text-slate-500 hover:text-slate-300'
+              className={`p-1 rounded text-[9px] cursor-pointer ${
+                currentMode === 'thermal' ? 'bg-cyan-950 text-cyan-400 font-bold border border-cyan-800/50' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
               }`}
               title="Thermal IR Mode"
             >
@@ -74,30 +74,30 @@ export const CameraTile: React.FC<CameraTileProps> = ({
           {onOpenZoneEditor && (
             <button
               onClick={() => onOpenZoneEditor(camera)}
-              className="p-1 rounded bg-slate-800/80 text-slate-300 hover:text-cyan-400 hover:bg-slate-800 text-[10px] transition-colors"
+              className="p-1 rounded bg-[var(--bg-panel-highlight)] text-[var(--text-secondary)] hover:text-cyan-500 border border-[var(--border-tactical)] transition-colors cursor-pointer"
               title="Edit Virtual Zone"
             >
-              <MapPin className="w-3.5 h-3.5" />
+              <MapPin className="w-3 h-3" />
             </button>
           )}
 
           {onMaximize && (
             <button
               onClick={() => onMaximize(camera)}
-              className="p-1 rounded bg-slate-800/80 text-slate-300 hover:text-cyan-400 hover:bg-slate-800 text-[10px] transition-colors"
+              className="p-1 rounded bg-[var(--bg-panel-highlight)] text-[var(--text-secondary)] hover:text-cyan-500 border border-[var(--border-tactical)] transition-colors cursor-pointer"
               title="Focus Stream"
             >
-              <Maximize2 className="w-3.5 h-3.5" />
+              <Maximize2 className="w-3 h-3" />
             </button>
           )}
         </div>
       </div>
 
       {/* Surveillance Canvas Display */}
-      <div className="relative w-full aspect-video bg-black">
+      <div className="relative flex-1 w-full bg-black min-h-0">
         <VideoCanvasRenderer camera={camera} detections={camDetections} zones={zones} activeVisionMode={currentMode} />
 
-        {/* Quick Demo Overlay Button */}
+        {/* Quick Demo Trigger Overlay Button */}
         <div className="absolute bottom-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity z-20">
           <button
             onClick={() =>
@@ -107,7 +107,7 @@ export const CameraTile: React.FC<CameraTileProps> = ({
                 'high'
               )
             }
-            className="flex items-center gap-1 px-2 py-1 rounded bg-red-950/90 border border-red-500/60 text-red-300 text-[10px] font-mono hover:bg-red-900 transition-all shadow-lg"
+            className="flex items-center gap-1 px-2 py-0.5 rounded bg-red-950/90 border border-red-500/60 text-red-300 text-[10px] font-mono hover:bg-red-900 transition-all shadow-lg cursor-pointer"
           >
             <AlertTriangle className="w-3 h-3 text-red-400" />
             <span>TEST BREACH</span>
@@ -116,13 +116,13 @@ export const CameraTile: React.FC<CameraTileProps> = ({
       </div>
 
       {/* Footer Info */}
-      <div className="flex items-center justify-between px-3 py-1.5 bg-slate-950 text-[11px] font-mono text-slate-400 border-t border-slate-900">
-        <div className="flex items-center gap-2">
-          <Activity className="w-3 h-3 text-cyan-400" />
+      <div className="flex items-center justify-between px-2.5 py-1 bg-[var(--bg-panel-elevated)] text-[10px] font-mono text-[var(--text-secondary)] border-t border-[var(--border-tactical)] transition-colors">
+        <div className="flex items-center gap-1.5">
+          <Activity className="w-3 h-3 text-cyan-500" />
           <span>RES: {camera.resolution}</span>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-cyan-400 font-semibold">{camDetections.length || 1} OBJECTS TRACKED</span>
+        <div className="flex items-center gap-1.5">
+          <span className="text-cyan-500 font-bold">{camDetections.length || 1} TRACKS</span>
         </div>
       </div>
     </div>
