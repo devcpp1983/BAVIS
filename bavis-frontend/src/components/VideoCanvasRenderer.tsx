@@ -31,7 +31,7 @@ export const VideoCanvasRenderer: React.FC<VideoCanvasRendererProps> = ({
 
   const videoSrc = getVideoSrc(camera);
 
-  // Deterministic mock bounding boxes per camera if live detections array is empty
+  // Deterministic mock bounding boxes per camera positioned accurately on visual objects
   const defaultDetections: Record<string, Detection[]> = {
     'cam-01': [
       {
@@ -39,7 +39,7 @@ export const VideoCanvasRenderer: React.FC<VideoCanvasRendererProps> = ({
         frame_ts: new Date().toISOString(),
         object_type: 'person',
         confidence: 0.942,
-        bbox: [320, 310, 520, 750],
+        bbox: [260, 230, 480, 710],
         track_id: 'T-042',
         speed_kmh: 4.8,
       },
@@ -48,12 +48,11 @@ export const VideoCanvasRenderer: React.FC<VideoCanvasRendererProps> = ({
       {
         camera_id: 'cam-02',
         frame_ts: new Date().toISOString(),
-        object_type: 'vehicle',
-        confidence: 0.914,
-        bbox: [220, 240, 780, 680],
-        track_id: 'V-017',
-        anpr_plate: 'UP16-AB-8849',
-        speed_kmh: 22.1,
+        object_type: 'person',
+        confidence: 0.925,
+        bbox: [1340, 520, 1560, 920],
+        track_id: 'T-042',
+        speed_kmh: 5.2,
       },
     ],
     'cam-03': [
@@ -61,21 +60,31 @@ export const VideoCanvasRenderer: React.FC<VideoCanvasRendererProps> = ({
         camera_id: 'cam-03',
         frame_ts: new Date().toISOString(),
         object_type: 'person',
-        confidence: 0.88,
-        bbox: [360, 280, 580, 720],
-        track_id: 'T-039',
-        speed_kmh: 2.4,
+        confidence: 0.948,
+        bbox: [410, 250, 610, 720],
+        track_id: 'T-042',
+        speed_kmh: 4.2,
+      },
+      {
+        camera_id: 'cam-03',
+        frame_ts: new Date().toISOString(),
+        object_type: 'vehicle',
+        confidence: 0.914,
+        bbox: [1340, 700, 1850, 990],
+        track_id: 'V-017',
+        anpr_plate: 'UP16-AB-8849',
+        speed_kmh: 0.0,
       },
     ],
     'cam-04': [
       {
         camera_id: 'cam-04',
         frame_ts: new Date().toISOString(),
-        object_type: 'vehicle',
-        confidence: 0.89,
-        bbox: [280, 340, 680, 640],
-        track_id: 'W-009',
-        speed_kmh: 12.4,
+        object_type: 'person',
+        confidence: 0.895,
+        bbox: [1340, 520, 1560, 910],
+        track_id: 'T-039',
+        speed_kmh: 3.6,
       },
     ],
   };
@@ -176,25 +185,25 @@ export const VideoCanvasRenderer: React.FC<VideoCanvasRendererProps> = ({
               }}
             >
               {/* Corner Reticles */}
-              <div className="absolute -top-1 -left-1 w-2 h-2 border-t-2 border-l-2 border-white"></div>
-              <div className="absolute -top-1 -right-1 w-2 h-2 border-t-2 border-r-2 border-white"></div>
-              <div className="absolute -bottom-1 -left-1 w-2 h-2 border-b-2 border-l-2 border-white"></div>
-              <div className="absolute -bottom-1 -right-1 w-2 h-2 border-b-2 border-r-2 border-white"></div>
+              <div className="absolute -top-0.5 -left-0.5 w-1.5 h-1.5 border-t-2 border-l-2 border-white pointer-events-none"></div>
+              <div className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 border-t-2 border-r-2 border-white pointer-events-none"></div>
+              <div className="absolute -bottom-0.5 -left-0.5 w-1.5 h-1.5 border-b-2 border-l-2 border-white pointer-events-none"></div>
+              <div className="absolute -bottom-0.5 -right-0.5 w-1.5 h-1.5 border-b-2 border-r-2 border-white pointer-events-none"></div>
 
-              {/* Tag Monospace Label */}
+              {/* Tag Monospace Label - Crisp & No-Wrap */}
               <div
-                className={`absolute -top-5 left-0 px-1 py-0.2 rounded-sm text-[9px] font-bold text-black flex items-center gap-1 shadow ${
+                className={`absolute -top-4 left-0 px-1 py-0.5 rounded-[2px] text-[8px] font-bold font-mono text-black flex items-center gap-1 whitespace-nowrap leading-none shadow-md ${
                   isVehicle ? 'bg-amber-400' : 'bg-cyan-400'
                 }`}
               >
                 <span>{det.object_type.toUpperCase()}</span>
-                <span>{det.track_id}</span>
+                <span>[{det.track_id}]</span>
                 <span>{Math.round(det.confidence * 100)}%</span>
               </div>
 
               {/* ANPR Plate Badge */}
               {det.anpr_plate && (
-                <div className="absolute -bottom-5 left-0 px-1.5 py-0.2 rounded-sm text-[8px] font-bold bg-amber-950 text-amber-300 border border-amber-500 shadow">
+                <div className="absolute -bottom-4.5 left-0 px-1 py-0.5 rounded-[2px] text-[7.5px] font-bold font-mono bg-amber-950 text-amber-300 border border-amber-500 shadow-md whitespace-nowrap leading-none">
                   PLATE: [{det.anpr_plate}]
                 </div>
               )}

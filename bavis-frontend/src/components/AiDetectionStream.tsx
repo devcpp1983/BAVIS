@@ -8,12 +8,12 @@ interface AiDetectionStreamProps {
 
 export const AiDetectionStream: React.FC<AiDetectionStreamProps> = ({ latestDetection }) => {
   const deterministicEvents = [
-    { time: '18:42:31', type: 'PERSON', cam: 'CAM-03 (BOP-N02)', track: 'T-042', conf: '94.2%', speed: '4.8 km/h', zone: 'RZ-01 (NORTH BUFFER)', alert: true },
-    { time: '18:42:27', type: 'VEHICLE', cam: 'CAM-02 (CHECKPOINT)', track: 'V-017', conf: '91.4%', speed: '22.1 km/h', anpr: 'UP16-AB-8849', alert: true },
-    { time: '18:42:12', type: 'ZONE_ENTRY', cam: 'CAM-01 (BOP-N01)', track: 'T-039', conf: '96.0%', zone: 'RZ-01 (NORTH BUFFER)', alert: false },
-    { time: '18:41:58', type: 'PERSON', cam: 'CAM-01 (BOP-N01)', track: 'T-039', conf: '89.5%', speed: '3.2 km/h', alert: false },
-    { time: '18:41:44', type: 'ANPR', cam: 'CAM-02 (CHECKPOINT)', track: 'V-014', conf: '93.2%', anpr: 'DL04-C-9912', alert: false },
-    { time: '18:41:15', type: 'MOTION', cam: 'CAM-04 (RIVERINE)', track: 'W-009', conf: '88.0%', speed: '12.4 km/h', alert: false },
+    { time: '18:42:31', type: 'PERSON', cam: 'CAM-03 (BOP-N02)', track: 'T-042', conf: '94.8%', speed: '4.2 km/h', zone: 'RZ-01 (NORTH BUFFER)', alert: true },
+    { time: '18:42:27', type: 'VEHICLE', cam: 'CAM-03 (BOP-N02)', track: 'V-017', conf: '91.4%', speed: '0.0 km/h', anpr: 'UP16-AB-8849', alert: false },
+    { time: '18:42:15', type: 'PERSON', cam: 'CAM-02 (CHECKPOINT)', track: 'T-042', conf: '92.5%', speed: '5.2 km/h', alert: false },
+    { time: '18:41:58', type: 'PERSON', cam: 'CAM-01 (BOP-N01)', track: 'T-042', conf: '94.2%', speed: '4.8 km/h', alert: false },
+    { time: '18:41:44', type: 'PERSON', cam: 'CAM-04 (RIVERINE)', track: 'T-039', conf: '89.5%', speed: '3.6 km/h', alert: false },
+    { time: '18:41:15', type: 'ZONE_ENTRY', cam: 'CAM-03 (BOP-N02)', track: 'T-042', conf: '95.0%', zone: 'RZ-01 (NORTH BUFFER)', alert: true },
   ];
 
   return (
