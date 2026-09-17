@@ -1,0 +1,26 @@
+# Secrets & Configs
+.env
+*.env
+!.env.example
+
+# SSL & Certificates
+infra/nginx/ssl/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+
+# Node / Web UI
+node_modules/
+dist/
+.next/
+
+# Docker volumes & local data
+data/postgres_data/
+data/minio_data/
+.DS_Store
+Thumbs.db

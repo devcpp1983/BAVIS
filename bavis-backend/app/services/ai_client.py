@@ -7,6 +7,11 @@ from app.core.config import settings
 from app.schemas.contract import DetectionEvent
 
 
+import base64
+import logging
+
+logger = logging.getLogger("bavis.ai_client")
+
 class AIClient:
     def __init__(self):
         self.use_mock = settings.USE_MOCK_AI
@@ -16,24 +21,34 @@ class AIClient:
         """
         Sends frame to AI Engine or returns mock detections if USE_MOCK_AI is enabled.
         """
-        if self.use_mock or not frame_bytes:
+        if self.use_mock:
             return self._generate_mock_detections(camera_id)
 
+        if not frame_bytes:
+            return []
+
         try:
-            async with httpx.AsyncClient(timeout=3.0) as client:
+            b64_frame = base64.b64encode(frame_bytes).decode("utf-8")
+            payload = {
+                "camera_id": camera_id,
+                "frame_base64": b64_frame,
+                "enable_face_detection": True,
+                "enable_anpr": True
+            }
+            async with httpx.AsyncClient(timeout=10.0) as client:
                 response = await client.post(
                     self.ai_url,
-                    data={"camera_id": camera_id},
-                    files={"frame": ("frame.jpg", frame_bytes, "image/jpeg")}
+                    json=payload
                 )
                 if response.status_code == 200:
                     data = response.json()
                     return [DetectionEvent(**item) for item in data.get("detections", [])]
+                else:
+                    logger.warning(f"AI Engine returned status {response.status_code}: {response.text}")
         except Exception as e:
-            # Fallback to mock on error
-            pass
+            logger.warning(f"Error calling AI Engine at {self.ai_url}: {e}")
 
-        return self._generate_mock_detections(camera_id)
+        return []
 
     def _generate_mock_detections(self, camera_id: str) -> List[DetectionEvent]:
         # Generate periodic mock detection with high probability

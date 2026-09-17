@@ -84,11 +84,12 @@ class ObjectDetector:
         if self.model is None:
             return []
 
-        # Run inference
+        # Run inference with CPU speed optimization (imgsz=320)
         results = self.model(
             frame_bgr, 
             classes=config.target_classes,
             device=self.device,
+            imgsz=320,
             verbose=False
         )
 

@@ -62,10 +62,26 @@ def gen_frames(stream_url: str):
     if stream_url.startswith(("http://", "https://")) and not stream_url.endswith(('/video', '/mjpeg', '/shot.jpg')):
         target_url = stream_url.rstrip('/') + '/video'
 
+    if not is_network_url and not os.path.exists(target_url):
+        alt_path = os.path.abspath(target_url)
+        if os.path.exists(alt_path):
+            target_url = alt_path
+        else:
+            base_filename = os.path.basename(target_url)
+            cand = os.path.abspath(os.path.join(".", "data", "videos", base_filename))
+            if os.path.exists(cand):
+                target_url = cand
+
     cap = None
-    if os.path.exists(stream_url) or is_network_url:
+    is_webcam = str(stream_url).isdigit()
+    if is_webcam:
         try:
-            cap = cv2.VideoCapture(target_url if is_network_url else stream_url)
+            cap = cv2.VideoCapture(int(stream_url))
+        except Exception:
+            cap = None
+    elif os.path.exists(target_url) or is_network_url:
+        try:
+            cap = cv2.VideoCapture(target_url if is_network_url else target_url)
             if not cap.isOpened() and target_url != stream_url:
                 cap = cv2.VideoCapture(stream_url)
         except Exception:

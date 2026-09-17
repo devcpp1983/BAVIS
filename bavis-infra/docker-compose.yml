@@ -1,0 +1,161 @@
+services:
+  # 1. Database (PostgreSQL 15)
+  db:
+    image: postgres:15-alpine
+    container_name: bavis-db
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-bavis}
+      POSTGRES_USER: ${POSTGRES_USER:-bavis_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-bavis_secure_password_2026}
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./data/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-bavis_admin} -d ${POSTGRES_DB:-bavis}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # 2. Redis (Cache & Message Queue)
+  redis:
+    image: redis:7-alpine
+    container_name: bavis-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # 3. Evidence Storage (MinIO S3 Compatible)
+  minio:
+    image: minio/minio:latest
+    container_name: bavis-minio
+    restart: always
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-bavis_minio_admin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-bavis_minio_secret_key_2026}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # 4. Ingestion Gateway (Workstream B)
+  ingestion:
+    build:
+      context: ./ingestion
+      dockerfile: Dockerfile
+    container_name: bavis-ingestion
+    restart: always
+    environment:
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      INGESTION_PORT: 8001
+      AI_ENGINE_URL: http://ai-engine:8002/api/v1/infer
+    ports:
+      - "8001:8001"
+    depends_on:
+      - ai-engine
+
+  # 5. AI / Vision Engine (Workstream A)
+  ai-engine:
+    build:
+      context: ./ai-engine
+      dockerfile: Dockerfile
+    container_name: bavis-ai-engine
+    restart: always
+    environment:
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      AI_ENGINE_PORT: 8002
+      INTELLIGENCE_URL: http://intelligence:8003/api/v1/process_detections
+      CONFIDENCE_THRESHOLD: ${CONFIDENCE_THRESHOLD:-0.50}
+    ports:
+      - "8002:8002"
+    depends_on:
+      - intelligence
+
+  # 6. Intelligence Engine (Workstream E)
+  intelligence:
+    build:
+      context: ./intelligence
+      dockerfile: Dockerfile
+    container_name: bavis-intelligence
+    restart: always
+    environment:
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      INTELLIGENCE_PORT: 8003
+      BACKEND_ALERT_URL: http://backend-api:8000/api/v1/internal/alerts
+    ports:
+      - "8003:8003"
+    depends_on:
+      - backend-api
+
+  # 7. Backend API Gateway (Workstream B)
+  backend-api:
+    build:
+      context: ./backend-api
+      dockerfile: Dockerfile
+    container_name: bavis-backend-api
+    restart: always
+    environment:
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      BACKEND_PORT: 8000
+      JWT_SECRET: ${JWT_SECRET:-bavis_jwt_super_secret_signing_key_sih26187_2026}
+      JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-480}
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB:-bavis}
+      POSTGRES_USER: ${POSTGRES_USER:-bavis_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-bavis_secure_password_2026}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      MINIO_HOST: minio
+      MINIO_PORT: 9000
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # 8. Frontend Operator Dashboard (Workstream C)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: bavis-frontend
+    restart: always
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend-api
+
+  # 9. Reverse Proxy (Nginx)
+  reverse-proxy:
+    image: nginx:alpine
+    container_name: bavis-reverse-proxy
+    restart: always
+    ports:
+      - "${HTTP_PORT:-8080}:8080"
+    volumes:
+      - ./infra/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - frontend
+      - backend-api
+
+volumes:
+  postgres_data:
+  minio_data:

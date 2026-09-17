@@ -61,6 +61,7 @@ app.include_router(auth.router, prefix=f"{settings.API_V1_STR}/auth", tags=["Aut
 app.include_router(cameras.router, prefix=f"{settings.API_V1_STR}/cameras", tags=["Cameras"])
 app.include_router(events.router, prefix=f"{settings.API_V1_STR}/events", tags=["Events & Detections"])
 app.include_router(alerts.router, prefix=f"{settings.API_V1_STR}/alerts", tags=["Alerts"])
+app.include_router(alerts.router, prefix=f"{settings.API_V1_STR}/internal/alerts", tags=["Internal Alerts"])
 app.include_router(zones.router, prefix=f"{settings.API_V1_STR}/zones", tags=["Zones & Rules"])
 app.include_router(evidence.router, prefix=f"{settings.API_V1_STR}/evidence", tags=["Evidence"])
 app.include_router(websockets.router, prefix="/alerts", tags=["Real-time WebSockets"])

@@ -22,8 +22,9 @@ class Settings(BaseSettings):
     EVIDENCE_DIR: str = "./data/evidence"
 
     # AI Integration
-    AI_ENGINE_URL: str = "http://localhost:8001/predict"
-    USE_MOCK_AI: bool = True
+    AI_ENGINE_URL: str = "http://localhost:8000/infer"
+    INTELLIGENCE_URL: str = "http://localhost:8003/api/v1/process_detections"
+    USE_MOCK_AI: bool = False
 
     # C2 Webhook
     C2_WEBHOOK_URL: str = "http://localhost:9000/webhook/c2"

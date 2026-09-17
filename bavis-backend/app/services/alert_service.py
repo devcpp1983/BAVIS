@@ -49,5 +49,18 @@ class AlertBroadcaster:
         except Exception:
             pass  # Redis optional fallback
 
+    async def broadcast_raw(self, data: dict):
+        payload_str = json.dumps(data)
+        disconnected = set()
+        for connection in list(self.active_connections):
+            try:
+                await connection.send_text(payload_str)
+            except Exception as e:
+                logger.warning(f"Error sending raw payload over WebSocket: {e}")
+                disconnected.add(connection)
+
+        for conn in disconnected:
+            self.disconnect(conn)
+
 
 alert_broadcaster = AlertBroadcaster()

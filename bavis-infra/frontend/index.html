@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BAVIS — Border AI Video Intelligence System</title>
+    <style>
+        :root {
+            --bg-primary: #0f172a;
+            --bg-card: #1e293b;
+            --border-color: #334155;
+            --accent-cyan: #06b6d4;
+            --accent-red: #ef4444;
+            --accent-amber: #f59e0b;
+            --accent-green: #10b981;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+        body { background: var(--bg-primary); color: var(--text-main); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        
+        header { background: #090d16; border-bottom: 1px solid var(--border-color); padding: 12px 24px; display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 1.25rem; font-weight: 700; letter-spacing: 1px; color: var(--accent-cyan); display: flex; align-items: center; gap: 10px; }
+        .badge { background: rgba(6, 182, 212, 0.15); border: 1px solid var(--accent-cyan); color: var(--accent-cyan); font-size: 0.75rem; padding: 2px 8px; borderRadius: 4px; }
+        .status-bar { display: flex; gap: 20px; font-size: 0.85rem; color: var(--text-muted); }
+        .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent-green); display: inline-block; margin-right: 6px; }
+
+        main { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; padding: 16px; flex: 1; overflow: hidden; }
+
+        .video-grid-container { display: flex; flex-direction: column; gap: 16px; }
+        .grid-header { font-size: 1rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); }
+        
+        .cameras-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; flex: 1; }
+        .camera-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; position: relative; overflow: hidden; display: flex; flex-direction: column; }
+        .camera-feed { flex: 1; background: #04070d; display: flex; align-items: center; justify-content: center; position: relative; }
+        .bounding-box { position: absolute; border: 2px solid var(--accent-red); background: rgba(239, 68, 68, 0.15); color: #fff; font-size: 0.7rem; padding: 2px 4px; top: 30%; left: 25%; width: 20%; height: 45%; }
+        .camera-meta { padding: 8px 12px; background: rgba(15, 23, 42, 0.8); font-size: 0.8rem; display: flex; justify-content: space-between; border-top: 1px solid var(--border-color); }
+
+        .alerts-sidebar { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; display: flex; flex-direction: column; overflow: hidden; }
+        .sidebar-header { padding: 12px 16px; background: rgba(15, 23, 42, 0.6); border-bottom: 1px solid var(--border-color); font-weight: 600; display: flex; justify-content: space-between; }
+        .alert-list { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+        
+        .alert-card { background: #0f172a; border-left: 4px solid var(--accent-red); border-radius: 4px; padding: 10px 12px; font-size: 0.85rem; }
+        .alert-card.medium { border-left-color: var(--accent-amber); }
+        .alert-title { font-weight: 600; color: #fff; display: flex; justify-content: space-between; }
+        .alert-time { font-size: 0.75rem; color: var(--text-muted); }
+        .alert-details { font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; }
+        .btn-ack { margin-top: 8px; background: rgba(6, 182, 212, 0.2); border: 1px solid var(--accent-cyan); color: var(--accent-cyan); padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; }
+        .btn-ack:hover { background: var(--accent-cyan); color: #000; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <span>🛡️ BAVIS</span>
+            <span class="badge">BORDER SURVEILLANCE V1.0</span>
+        </div>
+        <div class="status-bar">
+            <div><span class="dot"></span>System: Operational</div>
+            <div>AI FPS: 30.0</div>
+            <div>Alert Latency: &lt;15ms</div>
+            <div>User: Operator (Role: OPERATOR)</div>
+        </div>
+    </header>
+
+    <main>
+        <div class="video-grid-container">
+            <div class="grid-header">Live CCTV Feeds &amp; Edge Detection Grid</div>
+            <div class="cameras-grid">
+                <div class="camera-card">
+                    <div class="camera-feed">
+                        <span style="color: #475569;">[LIVE RTSP STREAM - CAM_BOP_01]</span>
+                        <div class="bounding-box">ID: person_101 (94%)</div>
+                    </div>
+                    <div class="camera-meta">
+                        <span>North Gate Fence (cam_bop_01)</span>
+                        <span style="color: var(--accent-green);">1080p @ 30fps</span>
+                    </div>
+                </div>
+                <div class="camera-card">
+                    <div class="camera-feed">
+                        <span style="color: #475569;">[LIVE RTSP STREAM - CAM_BOP_02]</span>
+                    </div>
+                    <div class="camera-meta">
+                        <span>East Checkpoint (cam_bop_02)</span>
+                        <span style="color: var(--accent-green);">1080p @ 30fps</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="alerts-sidebar">
+            <div class="sidebar-header">
+                <span>Real-Time Alerts</span>
+                <span class="badge" style="background: rgba(239,68,68,0.2); color: var(--accent-red); border-color: var(--accent-red);">HIGH SEVERITY</span>
+            </div>
+            <div class="alert-list" id="alert-container">
+                <div class="alert-card">
+                    <div class="alert-title">
+                        <span>Virtual Fence Breach</span>
+                        <span class="alert-time">16:10:02</span>
+                    </div>
+                    <div class="alert-details">Camera: North Gate Fence | Track: person_101</div>
+                    <button class="btn-ack" onclick="alert('Acknowledged Alert')">Acknowledge Incident</button>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

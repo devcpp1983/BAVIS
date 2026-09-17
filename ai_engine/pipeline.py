@@ -93,14 +93,21 @@ class VideoIntelligencePipeline:
 
         all_detection_events: list[DetectionEvent] = []
 
-        # Convert tracked objects into standard contract events
+        # Convert tracked objects into standard contract events with normalized [0.0..1.0] bbox
         for obj in tracked_objects:
+            bx1, by1, bx2, by2 = obj["bbox"]
+            norm_bbox = [
+                float(round(max(0.0, bx1 / w), 4)),
+                float(round(max(0.0, by1 / h), 4)),
+                float(round(min(1.0, bx2 / w), 4)),
+                float(round(min(1.0, by2 / h), 4))
+            ]
             event = DetectionEvent(
                 camera_id=camera_id,
                 frame_ts=frame_ts,
                 object_type=obj["object_type"],
                 confidence=obj["confidence"],
-                bbox=obj["bbox"],
+                bbox=norm_bbox,
                 track_id=obj["track_id"],
                 attributes={
                     "sub_class": obj.get("sub_class", obj["object_type"]),
@@ -114,12 +121,19 @@ class VideoIntelligencePipeline:
             face_results = self.face_detector.detect(processed_frame, person_crops=person_detections)
             for f in face_results:
                 face_track_id = f"face_{f.get('associated_person_track', camera_id)}"
+                fx1, fy1, fx2, fy2 = f["bbox"]
+                norm_fbbox = [
+                    float(round(max(0.0, fx1 / w), 4)),
+                    float(round(max(0.0, fy1 / h), 4)),
+                    float(round(min(1.0, fx2 / w), 4)),
+                    float(round(min(1.0, fy2 / h), 4))
+                ]
                 face_event = DetectionEvent(
                     camera_id=camera_id,
                     frame_ts=frame_ts,
                     object_type="face",
                     confidence=f["confidence"],
-                    bbox=f["bbox"],
+                    bbox=norm_fbbox,
                     track_id=face_track_id,
                     attributes={
                         "associated_person_track": f.get("associated_person_track")
@@ -131,13 +145,19 @@ class VideoIntelligencePipeline:
         if enable_anpr and vehicle_detections:
             anpr_results = self.anpr_pipeline.process_vehicles(processed_frame, vehicle_detections)
             for anpr in anpr_results:
-                # Merge attributes or append detection
+                ax1, ay1, ax2, ay2 = anpr["bbox"]
+                norm_abbox = [
+                    float(round(max(0.0, ax1 / w), 4)),
+                    float(round(max(0.0, ay1 / h), 4)),
+                    float(round(min(1.0, ax2 / w), 4)),
+                    float(round(min(1.0, ay2 / h), 4))
+                ]
                 anpr_event = DetectionEvent(
                     camera_id=camera_id,
                     frame_ts=frame_ts,
                     object_type="vehicle",
                     confidence=anpr["confidence"],
-                    bbox=anpr["bbox"],
+                    bbox=norm_abbox,
                     track_id=anpr["track_id"],
                     attributes=anpr["attributes"]
                 )

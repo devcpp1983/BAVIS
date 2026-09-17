@@ -1,0 +1,10 @@
+{
+  "name": "bavis-frontend",
+  "version": "1.0.0",
+  "description": "BAVIS Border AI Video Intelligence System Operator Dashboard",
+  "main": "index.html",
+  "scripts": {
+    "start": "python -m http.server 3000"
+  },
+  "dependencies": {}
+}

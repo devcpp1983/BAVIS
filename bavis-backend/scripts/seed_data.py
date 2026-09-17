@@ -49,14 +49,26 @@ async def seed_database():
 
         # 2. Seed Cameras
         cam_result = await db.execute(select(Camera))
-        if not cam_result.scalars().first():
+        existing_cams = cam_result.scalars().all()
+        if existing_cams:
+            cam_map = {
+                "CAM-BOP-01": "/videos/cam1.mp4",
+                "CAM-BOP-02": "/videos/cam2.mp4",
+                "CAM-CHECKPOST-01": "/videos/cam3.mp4",
+                "CAM-ROAD-NORTH": "/videos/cam4.mp4",
+            }
+            for cam in existing_cams:
+                if cam.camera_id in cam_map:
+                    cam.stream_url = cam_map[cam.camera_id]
+            await db.commit()
+        else:
             logger.info("Seeding Demo Cameras...")
             cams = [
                 Camera(
                     camera_id="CAM-BOP-01",
                     name="BOP Sector Alpha North",
                     location_code="BOP-ALPHA-01",
-                    stream_url="https://10.152.25.172:8080",
+                    stream_url="/videos/cam1.mp4",
                     status="online",
                     configuration={"fps": 25, "resolution": "1080p", "ptz": False}
                 ),
@@ -64,7 +76,7 @@ async def seed_database():
                     camera_id="CAM-BOP-02",
                     name="Patrol Route Bravo",
                     location_code="BOP-BRAVO-04",
-                    stream_url="./data/videos/cam2.mp4",
+                    stream_url="/videos/cam2.mp4",
                     status="online",
                     configuration={"fps": 25, "resolution": "720p", "ptz": True}
                 ),
@@ -72,7 +84,7 @@ async def seed_database():
                     camera_id="CAM-CHECKPOST-01",
                     name="Main International Checkpost",
                     location_code="CHK-MAIN-01",
-                    stream_url="./data/videos/cam3.mp4",
+                    stream_url="/videos/cam3.mp4",
                     status="online",
                     configuration={"fps": 30, "resolution": "4K", "ptz": True}
                 ),
@@ -80,7 +92,7 @@ async def seed_database():
                     camera_id="CAM-ROAD-NORTH",
                     name="North Perimeter Highway",
                     location_code="RD-NORTH-08",
-                    stream_url="./data/videos/cam4.mp4",
+                    stream_url="/videos/cam4.mp4",
                     status="online",
                     configuration={"fps": 25, "resolution": "1080p", "ptz": False}
                 )

@@ -1,0 +1,19 @@
+{
+  "settings_version": "0.0.8",
+  "datasets_dir": "E:\\datasets",
+  "weights_dir": "E:\\BAVIS\\weights",
+  "runs_dir": "E:\\BAVIS\\runs",
+  "uuid": "ad83aa897c44472628a9db097349cbb044509eaee67f2010d6c3c63d27c152a0",
+  "sync": true,
+  "api_key": "",
+  "openai_api_key": "",
+  "clearml": true,
+  "comet": true,
+  "dvc": true,
+  "mlflow": true,
+  "raytune": true,
+  "tensorboard": false,
+  "wandb": false,
+  "vscode_msg": true,
+  "openvino_msg": true
+}
