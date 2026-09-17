@@ -97,6 +97,10 @@ export interface Zone {
   severity: SeverityLevel;
   dwell_threshold_sec?: number;
   active_hours?: string;
+  coverage_cameras?: string[];
+  rule_person?: boolean;
+  rule_vehicle?: boolean;
+  rule_loiter?: boolean;
   points: Point2D[];
   active: boolean;
   created_at: string;

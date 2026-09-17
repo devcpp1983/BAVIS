@@ -6,6 +6,7 @@ import { OperationalMap } from './OperationalMap';
 import { RealtimeAlertPanel } from './RealtimeAlertPanel';
 import { CameraTile } from './CameraTile';
 import { ScenarioRunnerBar } from './ScenarioRunnerBar';
+import { AiDetectionStream } from './AiDetectionStream';
 import { Video, ShieldAlert, Cpu, Activity, Clock, ShieldCheck } from 'lucide-react';
 
 interface CommandOverviewProps {
@@ -23,7 +24,7 @@ export const CommandOverview: React.FC<CommandOverviewProps> = ({
   const [zones, setZones] = useState<Zone[]>([]);
   const [selectedCamera, setSelectedCamera] = useState<Camera | null>(null);
 
-  const { alerts, latestDetection } = useAlerts();
+  const { alerts, latestDetection, refreshAlerts } = useAlerts();
 
   useEffect(() => {
     const loadData = async () => {
@@ -42,25 +43,38 @@ export const CommandOverview: React.FC<CommandOverviewProps> = ({
     loadData();
   }, []);
 
+  const handleSaveNewZone = async (zonePayload: Partial<Zone>) => {
+    try {
+      const saved = await api.createOrUpdateZone(zonePayload);
+      setZones((prev) => {
+        const filtered = prev.filter((z) => z.zone_id !== saved.zone_id);
+        return [saved, ...filtered];
+      });
+      refreshAlerts();
+    } catch (e) {
+      console.error('Failed to save boundary from map:', e);
+    }
+  };
+
   const activeDetections = latestDetection ? [latestDetection] : [];
   const openIncidentsCount = alerts.filter((a) => a.status === 'new').length;
   const lastAlertTime = alerts.length > 0 ? new Date(alerts[0].created_at).toISOString().substring(11, 19) + ' UTC' : '18:42:11 UTC';
 
   return (
     <div className="flex flex-col gap-2.5 h-full overflow-y-auto select-none font-mono">
-      {/* 1. Header Section */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2.5 bg-[var(--bg-panel)] border border-[var(--border-tactical)] rounded">
+      {/* 1. Header & Operational Telemetry Strip */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2 bg-[var(--bg-panel)] border border-[var(--border-tactical)] rounded">
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-xs font-bold text-[var(--text-primary)] uppercase tracking-wider">
-              BORDER SURVEILLANCE — COMMON OPERATING PICTURE
+              BORDER SURVEILLANCE — COMMON OPERATING PICTURE (COP)
             </h1>
             <span className="text-[9px] bg-cyan-950 text-cyan-300 border border-cyan-800/60 px-1.5 py-0.2 rounded font-semibold">
               SECTOR: NORTHERN BORDER / BOP NETWORK
             </span>
           </div>
           <p className="text-[10px] text-[var(--text-secondary)] mt-0.5">
-            Automated sensor correlation, multi-camera tracking & virtual geofence rule evaluation
+            Retrofit-first AI video intelligence layer converting CCTV video into prioritized incident intelligence
           </p>
         </div>
 
@@ -72,12 +86,12 @@ export const CommandOverview: React.FC<CommandOverviewProps> = ({
         </div>
       </div>
 
-      {/* 2. Compact Operational Status Strip (Restrained, Information Dense) */}
+      {/* 2. Compact Status Counters */}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs">
         <div className="bg-[var(--bg-panel)] border border-[var(--border-tactical)] px-2.5 py-1.5 rounded flex items-center justify-between">
           <div>
             <span className="text-[9px] text-[var(--text-secondary)] uppercase block">CAMERAS ONLINE</span>
-            <span className="text-sm font-bold text-[var(--text-primary)]">{cameras.length} / {cameras.length}</span>
+            <span className="text-xs font-bold text-[var(--text-primary)]">{cameras.length} / {cameras.length} ONLINE</span>
           </div>
           <Video className="w-3.5 h-3.5 text-cyan-400" />
         </div>
@@ -85,7 +99,7 @@ export const CommandOverview: React.FC<CommandOverviewProps> = ({
         <div className="bg-[var(--bg-panel)] border border-[var(--border-tactical)] px-2.5 py-1.5 rounded flex items-center justify-between">
           <div>
             <span className="text-[9px] text-[var(--text-secondary)] uppercase block">ACTIVE TRACKS</span>
-            <span className="text-sm font-bold text-cyan-400">05 LIVE</span>
+            <span className="text-xs font-bold text-cyan-400">05 TRACKS LIVE</span>
           </div>
           <Cpu className="w-3.5 h-3.5 text-cyan-400" />
         </div>
@@ -93,7 +107,7 @@ export const CommandOverview: React.FC<CommandOverviewProps> = ({
         <div className="bg-[var(--bg-panel)] border border-[var(--border-tactical)] px-2.5 py-1.5 rounded flex items-center justify-between">
           <div>
             <span className="text-[9px] text-[var(--text-secondary)] uppercase block">OPEN INCIDENTS</span>
-            <span className="text-sm font-bold text-red-400">{openIncidentsCount} PRIORITY</span>
+            <span className="text-xs font-bold text-red-400">{openIncidentsCount} PRIORITY</span>
           </div>
           <ShieldAlert className="w-3.5 h-3.5 text-red-400" />
         </div>
@@ -101,7 +115,7 @@ export const CommandOverview: React.FC<CommandOverviewProps> = ({
         <div className="bg-[var(--bg-panel)] border border-[var(--border-tactical)] px-2.5 py-1.5 rounded flex items-center justify-between">
           <div>
             <span className="text-[9px] text-[var(--text-secondary)] uppercase block">SYSTEM HEALTH</span>
-            <span className="text-sm font-bold text-emerald-400">99.4% NOMINAL</span>
+            <span className="text-xs font-bold text-emerald-400">99.4% NOMINAL</span>
           </div>
           <Activity className="w-3.5 h-3.5 text-emerald-400" />
         </div>
@@ -109,45 +123,48 @@ export const CommandOverview: React.FC<CommandOverviewProps> = ({
         <div className="col-span-2 sm:col-span-1 bg-[var(--bg-panel)] border border-[var(--border-tactical)] px-2.5 py-1.5 rounded flex items-center justify-between">
           <div>
             <span className="text-[9px] text-[var(--text-secondary)] uppercase block">LAST EVENT</span>
-            <span className="text-sm font-bold text-[var(--text-primary)]">{lastAlertTime}</span>
+            <span className="text-xs font-bold text-[var(--text-primary)]">{lastAlertTime}</span>
           </div>
           <Clock className="w-3.5 h-3.5 text-cyan-400" />
         </div>
       </div>
 
-      {/* 3. Scenario Runner Execution Bar */}
+      {/* 3. Central Scenario Execution Controller */}
       <ScenarioRunnerBar
         onScenarioComplete={(incident) => {
           onNavigateToIncidents(incident);
         }}
       />
 
-      {/* 4. Main Center Grid: Tactical Map & Priority Alert Rail */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-2.5 flex-1 min-h-[380px]">
-        {/* Left 8 Cols: Operational Tactical Schematic Map */}
+      {/* 4. Center Grid: Geospatial Operations Map (Hero) + Priority Incident Rail */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-2.5 min-h-[380px]">
+        {/* Left 8 Cols: GIS Map with BOPs, Cameras, Roads, Zones & Movement Vectors */}
         <div className="lg:col-span-8 flex flex-col h-full overflow-hidden">
           <OperationalMap
             cameras={cameras}
             alerts={alerts}
+            zones={zones}
             selectedCameraId={selectedCamera?.camera_id}
             onSelectCamera={(cam) => setSelectedCamera(cam)}
             onSelectAlert={(alert) => onNavigateToIncidents(alert)}
+            onSaveZone={handleSaveNewZone}
+            interactiveDrawingAllowed={true}
           />
         </div>
 
-        {/* Right 4 Cols: Priority Alert Rail */}
+        {/* Right 4 Cols: Priority Incident Rail */}
         <div className="lg:col-span-4 flex flex-col h-full overflow-hidden">
           <RealtimeAlertPanel />
         </div>
       </div>
 
-      {/* 5. Bottom Live Surveillance Camera Strip */}
+      {/* 5. Live Surveillance Matrix (4 Video Feeds with CV Overlays) */}
       <div className="bg-[var(--bg-panel)] border border-[var(--border-tactical)] rounded p-2.5 flex flex-col gap-2 shrink-0">
         <div className="flex items-center justify-between px-1">
           <div className="flex items-center gap-2">
             <Video className="w-3.5 h-3.5 text-cyan-400" />
             <h3 className="text-xs font-bold text-[var(--text-primary)] uppercase tracking-wider">
-              SECTOR SURVEILLANCE FEED STRIP
+              LIVE SURVEILLANCE FEED MATRIX (4 RETROFITTED CCTV CHANNELS)
             </h3>
           </div>
 
@@ -155,7 +172,7 @@ export const CommandOverview: React.FC<CommandOverviewProps> = ({
             onClick={() => onNavigateToCameraMatrix()}
             className="text-xs text-cyan-400 hover:text-cyan-300 font-bold underline cursor-pointer"
           >
-            VIEW FULL SURVEILLANCE MATRIX →
+            EXPAND MULTI-CAMERA MATRIX →
           </button>
         </div>
 
@@ -176,6 +193,9 @@ export const CommandOverview: React.FC<CommandOverviewProps> = ({
           ))}
         </div>
       </div>
+
+      {/* 6. AI Detection Event Stream (Deterministic Real-Time Ingestion) */}
+      <AiDetectionStream latestDetection={latestDetection} />
     </div>
   );
 };
