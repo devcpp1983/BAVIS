@@ -17,32 +17,38 @@ export const OperationalMap: React.FC<OperationalMapProps> = ({
   onSelectCamera,
   onSelectAlert,
 }) => {
-  const [mapMode, setMapMode] = useState<'schematic' | 'thermal' | 'satellite'>('schematic');
+  const [mapMode, setMapMode] = useState<'schematic' | 'thermal' | 'grid'>('schematic');
 
-  // Hardcoded map positions for standard cameras for schematic visualization
-  const cameraMapCoords: Record<string, { x: number; y: number; angle: number; zone: string }> = {
-    'cam-01': { x: 22, y: 35, angle: 45, zone: 'BOP-ALPHA-01' },
-    'cam-02': { x: 48, y: 65, angle: -30, zone: 'CHECKPOST-BRAVO' },
-    'cam-03': { x: 74, y: 28, angle: 120, zone: 'PATROL-CORRIDOR-C' },
-    'cam-04': { x: 82, y: 72, angle: -135, zone: 'RIVERINE-DELTA' },
+  // Hardcoded coordinates for the northern border sector schematic
+  const cameraMapCoords: Record<string, { x: number; y: number; angle: number; zone: string; sector: string }> = {
+    'cam-01': { x: 24, y: 38, angle: 45, zone: 'Zone North Buffer', sector: 'BOP-N01' },
+    'cam-02': { x: 50, y: 64, angle: -30, zone: 'Inspection Bay', sector: 'CHECKPOINT-03' },
+    'cam-03': { x: 72, y: 32, angle: 120, zone: 'Patrol Corridor C', sector: 'BOP-N02' },
+    'cam-04': { x: 84, y: 76, angle: -135, zone: 'Riverine Waterway', sector: 'SECTOR-DELTA' },
   };
 
   return (
-    <div className="relative w-full h-full min-h-[380px] bg-[var(--bg-panel)] border border-[var(--border-tactical)] rounded flex flex-col overflow-hidden select-none transition-colors">
+    <div className="relative w-full h-full min-h-[360px] bg-[var(--bg-panel)] border border-[var(--border-tactical)] rounded flex flex-col overflow-hidden select-none font-mono">
       {/* Map Control Bar */}
       <div className="flex items-center justify-between px-3 py-1.5 bg-[var(--bg-panel-elevated)] border-b border-[var(--border-tactical)]">
-        <div className="flex items-center gap-2 font-mono text-[11px]">
-          <Crosshair className="w-3.5 h-3.5 text-cyan-500" />
-          <span className="font-bold text-[var(--text-primary)] uppercase tracking-wider">SECTOR TACTICAL SCHEMATIC</span>
-          <span className="text-[var(--text-muted)] text-[10px] hidden sm:inline">| GRID: 44R-EQ-9921</span>
+        <div className="flex items-center gap-2 text-xs">
+          <Crosshair className="w-3.5 h-3.5 text-cyan-400" />
+          <span className="font-bold text-[var(--text-primary)] uppercase tracking-wider">
+            BORDER SECTOR COMMON OPERATING PICTURE
+          </span>
+          <span className="text-[var(--text-muted)] text-[10px] hidden sm:inline">
+            | SECTOR GRID: 44R-EQ-9921
+          </span>
         </div>
 
-        <div className="flex items-center gap-1.5 font-mono text-[10px]">
+        <div className="flex items-center gap-1.5 text-[10px]">
           <div className="flex items-center bg-[var(--bg-panel-highlight)] border border-[var(--border-tactical)] rounded p-0.5">
             <button
               onClick={() => setMapMode('schematic')}
               className={`px-2 py-0.5 rounded cursor-pointer ${
-                mapMode === 'schematic' ? 'bg-cyan-950 text-cyan-300 font-bold border border-cyan-700/60' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                mapMode === 'schematic'
+                  ? 'bg-cyan-950 text-cyan-300 font-bold border border-cyan-700/60'
+                  : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
               }`}
             >
               SCHEMATIC
@@ -50,79 +56,119 @@ export const OperationalMap: React.FC<OperationalMapProps> = ({
             <button
               onClick={() => setMapMode('thermal')}
               className={`px-2 py-0.5 rounded cursor-pointer ${
-                mapMode === 'thermal' ? 'bg-cyan-950 text-cyan-300 font-bold border border-cyan-700/60' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                mapMode === 'thermal'
+                  ? 'bg-cyan-950 text-cyan-300 font-bold border border-cyan-700/60'
+                  : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
               }`}
             >
-              IR HEAT
+              IR / HEAT
             </button>
             <button
-              onClick={() => setMapMode('satellite')}
+              onClick={() => setMapMode('grid')}
               className={`px-2 py-0.5 rounded cursor-pointer ${
-                mapMode === 'satellite' ? 'bg-cyan-950 text-cyan-300 font-bold border border-cyan-700/60' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                mapMode === 'grid'
+                  ? 'bg-cyan-950 text-cyan-300 font-bold border border-cyan-700/60'
+                  : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
               }`}
             >
-              SATELLITE
+              TACTICAL GRID
             </button>
           </div>
         </div>
       </div>
 
-      {/* Main Schematic Display Area */}
-      <div className="relative flex-1 bg-[var(--bg-panel-elevated)] overflow-hidden transition-colors">
-        {/* Vector Grid Background */}
+      {/* Main Tactical Map SVG / Canvas */}
+      <div className="relative flex-1 bg-[var(--bg-panel-elevated)] overflow-hidden">
+        {/* Fine Subdued Grid Lines */}
         <div
-          className="absolute inset-0 opacity-30 pointer-events-none"
+          className="absolute inset-0 opacity-20 pointer-events-none"
           style={{
             backgroundImage: `
-              radial-gradient(circle at 50% 50%, rgba(6, 182, 212, 0.15) 0%, transparent 70%),
-              linear-gradient(rgba(30, 58, 138, 0.15) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(30, 58, 138, 0.15) 1px, transparent 1px)
+              linear-gradient(rgba(14, 116, 144, 0.2) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(14, 116, 144, 0.2) 1px, transparent 1px)
             `,
-            backgroundSize: '100% 100%, 30px 30px, 30px 30px',
+            backgroundSize: '28px 28px',
           }}
         ></div>
 
-        {/* Sector Fences & Border Line SVG */}
+        {/* Operational Border Schematics (Zero Line, Roads, Outposts) */}
         <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" xmlns="http://www.w3.org/2000/svg">
-          {/* Border Line */}
+          {/* International Border Zero Line */}
           <path
-            d="M 10 120 Q 200 40 400 160 T 800 100 T 1200 180"
+            d="M 20 100 Q 250 40 480 130 T 820 90 T 1200 150"
             fill="none"
             stroke="#ef4444"
             strokeWidth="2"
             strokeDasharray="6 4"
-            opacity="0.8"
+            opacity="0.85"
           />
-          <text x="120" y="70" fill="#ef4444" fontSize="10" fontFamily="monospace" fontWeight="bold">
-            [ INTERNATIONAL BORDER FENCE LINE ]
+          <text x="140" y="65" fill="#ef4444" fontSize="10" fontFamily="monospace" fontWeight="bold">
+            [ INTERNATIONAL ZERO LINE / BORDER WIRE ]
           </text>
 
-          {/* Buffer Zone Polygon */}
+          {/* BOP-N01 Restricted Buffer Polygon */}
           <polygon
-            points="150,80 450,180 750,110 650,280 250,260"
+            points="120,70 380,140 360,260 140,240"
+            fill="rgba(239, 68, 68, 0.08)"
+            stroke="#ef4444"
+            strokeWidth="1.2"
+            strokeDasharray="4 3"
+          />
+          <text x="170" y="210" fill="#f87171" fontSize="9" fontFamily="monospace" opacity="0.9">
+            ZONE-101 (BUFFER CORRIDOR)
+          </text>
+
+          {/* BOP-N02 Night Dwell Polygon */}
+          <polygon
+            points="580,75 880,120 840,230 620,210"
             fill="rgba(245, 158, 11, 0.08)"
             stroke="#f59e0b"
-            strokeWidth="1.5"
-            strokeDasharray="4 4"
+            strokeWidth="1.2"
+            strokeDasharray="4 3"
           />
-          <text x="320" y="220" fill="#f59e0b" fontSize="10" fontFamily="monospace" fontWeight="bold">
-            RESTRICTED BUFFER ZONE-A
+          <text x="640" y="170" fill="#fbbf24" fontSize="9" fontFamily="monospace" opacity="0.9">
+            ZONE-103 (NIGHT DWELL CORRIDOR)
           </text>
 
-          {/* Secondary Patrol Path */}
+          {/* Patrol Road / Service Conduit */}
           <path
-            d="M 50 320 L 350 280 L 650 340 L 950 290"
+            d="M 40 300 L 280 270 L 520 310 L 780 260 L 1050 300"
             fill="none"
             stroke="#06b6d4"
-            strokeWidth="1"
-            strokeDasharray="2 2"
-            opacity="0.5"
+            strokeWidth="1.5"
+            strokeDasharray="3 3"
+            opacity="0.6"
           />
+          <text x="320" y="295" fill="#06b6d4" fontSize="9" fontFamily="monospace">
+            PATROL ROAD ALPHA (SERVICE CONDUIT)
+          </text>
+
+          {/* Outpost Base Structures */}
+          <g transform="translate(180, 240)">
+            <rect width="18" height="14" fill="#0e1722" stroke="#38bdf8" strokeWidth="1" />
+            <text x="24" y="11" fill="#94a3b8" fontSize="8" fontFamily="monospace">
+              BOP-N01
+            </text>
+          </g>
+
+          <g transform="translate(480, 290)">
+            <rect width="22" height="16" fill="#0e1722" stroke="#10b981" strokeWidth="1" />
+            <text x="28" y="12" fill="#94a3b8" fontSize="8" fontFamily="monospace">
+              CHECKPOINT-03
+            </text>
+          </g>
+
+          <g transform="translate(740, 220)">
+            <rect width="18" height="14" fill="#0e1722" stroke="#38bdf8" strokeWidth="1" />
+            <text x="24" y="11" fill="#94a3b8" fontSize="8" fontFamily="monospace">
+              BOP-N02
+            </text>
+          </g>
         </svg>
 
-        {/* Render Camera Nodes with FOV Cones */}
+        {/* Camera Nodes with Vision Coverage Cones */}
         {cameras.map((cam) => {
-          const coords = cameraMapCoords[cam.camera_id] || { x: 30, y: 50, angle: 0, zone: cam.location_code };
+          const coords = cameraMapCoords[cam.camera_id] || { x: 30, y: 50, angle: 0, zone: cam.location_code, sector: 'SECTOR' };
           const isSelected = selectedCameraId === cam.camera_id;
           const hasAlert = alerts.some((a) => a.camera_id === cam.camera_id && a.status === 'new');
 
@@ -133,89 +179,88 @@ export const OperationalMap: React.FC<OperationalMapProps> = ({
               onClick={() => onSelectCamera(cam)}
               className="absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer z-10 group"
             >
-              {/* Camera FOV Vision Cone Visualizer */}
+              {/* Field of View (FOV) Coverage Arc */}
               <div
-                className={`absolute top-1/2 left-1/2 w-28 h-28 -translate-x-1/2 -translate-y-1/2 pointer-events-none transition-opacity ${
+                className={`absolute top-1/2 left-1/2 w-24 h-24 -translate-x-1/2 -translate-y-1/2 pointer-events-none transition-opacity ${
                   isSelected ? 'opacity-80' : 'opacity-30 group-hover:opacity-60'
                 }`}
                 style={{
                   background: hasAlert
-                    ? 'radial-gradient(circle at center, rgba(239, 68, 68, 0.4) 0%, transparent 70%)'
-                    : 'radial-gradient(circle at center, rgba(6, 182, 212, 0.3) 0%, transparent 70%)',
+                    ? 'radial-gradient(circle at center, rgba(239, 68, 68, 0.4) 0%, transparent 65%)'
+                    : 'radial-gradient(circle at center, rgba(6, 182, 212, 0.3) 0%, transparent 65%)',
                 }}
               ></div>
 
-              {/* Camera Node Icon */}
+              {/* Camera Marker */}
               <div
-                className={`relative flex items-center justify-center w-8 h-8 rounded-full border transition-all ${
+                className={`relative flex items-center justify-center w-7 h-7 rounded-sm border transition-all ${
                   hasAlert
-                    ? 'bg-red-950/90 border-red-500 text-red-400 animate-pulse-critical'
+                    ? 'bg-red-950/90 border-red-500 text-red-400'
                     : isSelected
-                    ? 'bg-cyan-950 border-cyan-400 text-cyan-300 shadow-[0_0_12px_rgba(6,182,212,0.5)]'
+                    ? 'bg-cyan-950 border-cyan-400 text-cyan-300 shadow-[0_0_10px_rgba(6,182,212,0.4)]'
                     : 'bg-[var(--bg-panel)] border-[var(--border-tactical)] text-[var(--text-secondary)] group-hover:border-cyan-500/60 group-hover:text-[var(--text-primary)]'
                 }`}
               >
-                <Video className="w-4 h-4" />
+                <Video className="w-3.5 h-3.5" />
 
                 {hasAlert && (
-                  <span className="absolute -top-1 -right-1 flex h-3 w-3">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                  <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
+                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
                   </span>
                 )}
               </div>
 
-              {/* Camera ID Tooltip Label */}
-              <div className="absolute top-9 left-1/2 -translate-x-1/2 whitespace-nowrap bg-[var(--bg-panel-elevated)] border border-[var(--border-tactical)] px-2 py-0.5 rounded text-[10px] font-mono text-[var(--text-primary)] shadow-md">
-                <span className="font-bold text-cyan-500">{cam.name}</span>
-                <span className="text-[9px] text-[var(--text-secondary)] block">{coords.zone}</span>
+              {/* Camera Label */}
+              <div className="absolute top-8 left-1/2 -translate-x-1/2 whitespace-nowrap bg-[var(--bg-panel-elevated)] border border-[var(--border-tactical)] px-1.5 py-0.5 rounded text-[9px] font-mono text-[var(--text-primary)] shadow">
+                <span className="font-bold text-cyan-400">{cam.name.split(' ')[0]}</span>
+                <span className="text-[8px] text-[var(--text-muted)] block">{coords.sector}</span>
               </div>
             </div>
           );
         })}
 
-        {/* Active Threats Pinpoint Markers */}
+        {/* Active Incident Pinpoint Badges */}
         {alerts
           .filter((a) => a.status === 'new')
           .slice(0, 3)
-          .map((alert, idx) => {
-            const coords = cameraMapCoords[alert.camera_id] || { x: 40 + idx * 15, y: 40 + idx * 10 };
+          .map((alert) => {
+            const coords = cameraMapCoords[alert.camera_id] || { x: 45, y: 45 };
             return (
               <div
                 key={alert.alert_id}
-                style={{ left: `${coords.x + 4}%`, top: `${coords.y - 6}%` }}
+                style={{ left: `${coords.x + 3}%`, top: `${coords.y - 7}%` }}
                 onClick={() => onSelectAlert && onSelectAlert(alert)}
-                className="absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer z-20 animate-bounce"
+                className="absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer z-20"
               >
-                <div className="flex items-center gap-1 bg-red-950 border border-red-500 text-red-300 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold shadow-lg">
+                <div className="flex items-center gap-1 bg-red-950 border border-red-500 text-red-300 px-2 py-0.5 rounded text-[10px] font-mono font-bold shadow hover:bg-red-900 transition-colors">
                   <ShieldAlert className="w-3 h-3 text-red-400" />
-                  <span>BREACH #{alert.alert_id.slice(-4)}</span>
+                  <span>{alert.alert_id}</span>
                 </div>
               </div>
             );
           })}
 
-        {/* Compass & Scale Overlay */}
-        <div className="absolute bottom-3 left-3 bg-[var(--bg-panel-elevated)] border border-[var(--border-tactical)] px-2 py-1 rounded text-[10px] font-mono text-[var(--text-secondary)] flex items-center gap-2 select-none shadow">
-          <Navigation className="w-3.5 h-3.5 text-cyan-500" />
-          <span>N 0°0'0"</span>
+        {/* Tactical Compass & Scale */}
+        <div className="absolute bottom-2.5 left-2.5 bg-[var(--bg-panel-elevated)] border border-[var(--border-tactical)] px-2 py-1 rounded text-[9px] font-mono text-[var(--text-secondary)] flex items-center gap-2 select-none shadow">
+          <Navigation className="w-3 h-3 text-cyan-400" />
+          <span>TRUE NORTH</span>
           <span className="text-[var(--border-tactical)]">|</span>
-          <span>1 : 5,000 M</span>
+          <span>SCALE: 1 : 5,000 M</span>
         </div>
 
         {/* Legend Overlay */}
-        <div className="absolute bottom-3 right-3 bg-[var(--bg-panel-elevated)] border border-[var(--border-tactical)] p-2 rounded text-[10px] font-mono text-[var(--text-primary)] flex items-center gap-3 shadow">
-          <div className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-            <span>ACTIVE CAM</span>
+        <div className="absolute bottom-2.5 right-2.5 bg-[var(--bg-panel-elevated)] border border-[var(--border-tactical)] p-1.5 rounded text-[9px] font-mono text-[var(--text-primary)] flex items-center gap-2.5 shadow">
+          <div className="flex items-center gap-1">
+            <span className="w-2 h-2 rounded bg-cyan-500"></span>
+            <span>CAMERA FOV</span>
           </div>
-          <div className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
-            <span>BREACH ALERT</span>
+          <div className="flex items-center gap-1">
+            <span className="w-2 h-2 rounded bg-red-500"></span>
+            <span>INCIDENT</span>
           </div>
-          <div className="flex items-center gap-1.5">
-            <span className="w-3 h-0.5 bg-amber-500"></span>
-            <span>BUFFER ZONE</span>
+          <div className="flex items-center gap-1">
+            <span className="w-2 h-0.5 bg-red-500"></span>
+            <span>ZERO LINE</span>
           </div>
         </div>
       </div>

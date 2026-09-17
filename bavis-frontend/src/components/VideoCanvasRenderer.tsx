@@ -49,10 +49,10 @@ export const VideoCanvasRenderer: React.FC<VideoCanvasRendererProps> = ({
     if (!ctx) return;
 
     let animationFrameId: number;
-    let frameCount = 0;
+    let _frameCount = 0;
 
     const renderFrame = () => {
-      frameCount++;
+      _frameCount++;
       const width = canvas.width;
       const height = canvas.height;
 

@@ -8,7 +8,13 @@ export type VisionMode = 'day' | 'night' | 'thermal';
 
 export type UserRole = 'operator' | 'supervisor' | 'admin';
 
-export type RuleType = 'virtual_fence_breach' | 'anpr_unlisted_vehicle' | 'dwell_time_exceeded' | 'low_light_movement' | 'restricted_perimeter';
+export type RuleType =
+  | 'virtual_fence_breach'
+  | 'anpr_unlisted_vehicle'
+  | 'dwell_time_exceeded'
+  | 'low_light_movement'
+  | 'restricted_perimeter'
+  | 'multiple_track_correlation';
 
 export interface BoundingBox {
   x1: number;
@@ -28,6 +34,19 @@ export interface Detection {
   speed_kmh?: number;
 }
 
+export interface IncidentTimelineStep {
+  time: string;
+  title: string;
+  detail: string;
+  status: 'completed' | 'current' | 'pending';
+}
+
+export interface ReasoningStep {
+  label: string;
+  description: string;
+  highlight?: boolean;
+}
+
 export interface Alert {
   alert_id: string;
   event_id: string;
@@ -43,6 +62,11 @@ export interface Alert {
   location_code?: string;
   object_type?: ObjectType;
   description?: string;
+  track_id?: string;
+  classification?: string;
+  detection_timeline?: IncidentTimelineStep[];
+  reasoning_chain?: ReasoningStep[];
+  integrity_hash?: string;
 }
 
 export interface Camera {
@@ -55,6 +79,9 @@ export interface Camera {
   fps: number;
   resolution: string;
   last_ping: string;
+  latency_ms?: number;
+  active_tracks_count?: number;
+  current_zone_name?: string;
 }
 
 export interface Point2D {
@@ -69,6 +96,7 @@ export interface Zone {
   rule_type: RuleType;
   severity: SeverityLevel;
   dwell_threshold_sec?: number;
+  active_hours?: string;
   points: Point2D[];
   active: boolean;
   created_at: string;
@@ -86,6 +114,7 @@ export interface Evidence {
   detections: Detection[];
   rule_fired: string;
   risk_score: number;
+  integrity_hash: string;
   notes?: string[];
   audit_trail: Array<{
     actor: string;
@@ -93,6 +122,30 @@ export interface Evidence {
     timestamp: string;
     role: UserRole;
   }>;
+}
+
+export interface AuditLogEntry {
+  id: string;
+  timestamp: string;
+  operator: string;
+  role: UserRole;
+  action: string;
+  resource: string;
+  result: 'SUCCESS' | 'DENIED' | 'FLAGGED';
+  source: string;
+}
+
+export interface TrackInvestigation {
+  track_id: string;
+  object_type: ObjectType;
+  first_detected: string;
+  last_detected: string;
+  cameras_observed: string[];
+  zones_entered: string[];
+  associated_events: string[];
+  max_confidence: number;
+  speed_kmh?: number;
+  evidence_id?: string;
 }
 
 export interface User {
@@ -109,7 +162,9 @@ export interface EventFilterParams {
   type?: ObjectType | 'all';
   severity?: SeverityLevel | 'all';
   status?: AlertStatus | 'all';
+  track_id?: string;
   from?: string;
   to?: string;
   searchQuery?: string;
 }
+

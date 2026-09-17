@@ -14,6 +14,8 @@ interface AlertContextType {
   setSelectedEvidenceId: (id: string | null) => void;
   triggerDemoAlert: (rule: 'virtual_fence_breach' | 'anpr_unlisted_vehicle' | 'dwell_time_exceeded' | 'low_light_movement', camId?: string, severity?: 'low' | 'medium' | 'high') => void;
   refreshAlerts: () => Promise<void>;
+  resetDemoState: () => void;
+  runScenario: (scenarioId: 1 | 2 | 3, onStepUpdate?: (step: any) => void) => void;
 }
 
 const AlertContext = createContext<AlertContextType | undefined>(undefined);
@@ -26,7 +28,7 @@ export const AlertProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [selectedEvidenceId, setSelectedEvidenceId] = useState<string | null>(null);
   const audioCtxRef = useRef<AudioContext | null>(null);
 
-  // Play Web Audio Tactical Beep for High severity alerts
+  // Tactical Alert Beep
   const playTacticalAlarm = useCallback(() => {
     if (!soundEnabled) return;
     try {
@@ -40,23 +42,23 @@ export const AlertProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
 
       const now = ctx.currentTime;
-      const osc1 = ctx.createOscillator();
+      const osc = ctx.createOscillator();
       const gain = ctx.createGain();
 
-      osc1.type = 'sawtooth';
-      osc1.frequency.setValueAtTime(880, now);
-      osc1.frequency.setValueAtTime(1200, now + 0.1);
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(880, now);
+      osc.frequency.setValueAtTime(1200, now + 0.1);
 
-      gain.gain.setValueAtTime(0.15, now);
-      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+      gain.gain.setValueAtTime(0.12, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
 
-      osc1.connect(gain);
+      osc.connect(gain);
       gain.connect(ctx.destination);
 
-      osc1.start(now);
-      osc1.stop(now + 0.3);
+      osc.start(now);
+      osc.stop(now + 0.25);
     } catch {
-      // Ignore audio autoplay restrictions gracefully
+      // Ignore audio autoplay policies gracefully
     }
   }, [soundEnabled]);
 
@@ -68,6 +70,11 @@ export const AlertProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       console.error('Failed to load initial alerts:', err);
     }
   }, []);
+
+  const resetDemoState = useCallback(() => {
+    api.resetDemoState();
+    refreshAlerts();
+  }, [refreshAlerts]);
 
   useEffect(() => {
     refreshAlerts();
@@ -120,10 +127,20 @@ export const AlertProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const triggerDemoAlert = (
     rule: 'virtual_fence_breach' | 'anpr_unlisted_vehicle' | 'dwell_time_exceeded' | 'low_light_movement',
-    camId?: string,
-    severity?: 'low' | 'medium' | 'high'
+    _camId?: string,
+    _severity?: 'low' | 'medium' | 'high'
   ) => {
-    api.triggerDemoAlert(rule, camId, severity);
+    if (rule === 'virtual_fence_breach') {
+      api.runScenario(1);
+    } else if (rule === 'anpr_unlisted_vehicle') {
+      api.runScenario(2);
+    } else {
+      api.runScenario(3);
+    }
+  };
+
+  const runScenario = (scenarioId: 1 | 2 | 3, onStepUpdate?: (step: any) => void) => {
+    api.runScenario(scenarioId, onStepUpdate);
   };
 
   const unreadHighCount = alerts.filter((a) => a.severity === 'high' && a.status === 'new').length;
@@ -141,6 +158,8 @@ export const AlertProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setSelectedEvidenceId,
         triggerDemoAlert,
         refreshAlerts,
+        resetDemoState,
+        runScenario,
       }}
     >
       {children}

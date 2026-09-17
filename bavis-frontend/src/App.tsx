@@ -9,15 +9,19 @@ import { LiveMatrix } from './components/LiveMatrix';
 import { IncidentTimeline } from './components/IncidentTimeline';
 import { EventSearch } from './components/EventSearch';
 import { ZoneEditor } from './components/ZoneEditor';
+import { EvidenceTab } from './components/EvidenceTab';
 import { SystemHealthPanel } from './components/SystemHealthPanel';
 import { AdminControls } from './components/AdminControls';
+import { OperatorsPanel } from './components/OperatorsPanel';
+import { AuditLogPanel } from './components/AuditLogPanel';
 import { EvidenceViewer } from './components/EvidenceViewer';
-import { DemoControlWidget } from './components/DemoControlWidget';
-import type { Camera } from './types/bavis';
+import type { Camera, Alert } from './types/bavis';
 
 function MainWorkspace() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('overview');
   const [zoneCameraContext, setZoneCameraContext] = useState<Camera | null>(null);
+  const [selectedIncidentContext, setSelectedIncidentContext] = useState<Alert | null>(null);
+  const [selectedCameraContext, setSelectedCameraContext] = useState<Camera | null>(null);
   const { selectedEvidenceId, setSelectedEvidenceId } = useAlerts();
 
   const handleOpenZoneEditorForCam = (camera: Camera) => {
@@ -25,21 +29,40 @@ function MainWorkspace() {
     setActiveTab('zones');
   };
 
+  const handleNavigateToIncidents = (alert?: Alert) => {
+    if (alert) {
+      setSelectedIncidentContext(alert);
+    }
+    setActiveTab('incidents');
+  };
+
+  const handleNavigateToMatrix = (camera?: Camera) => {
+    if (camera) {
+      setSelectedCameraContext(camera);
+    }
+    setActiveTab('matrix');
+  };
+
   return (
     <CommandShell activeTab={activeTab} setActiveTab={setActiveTab}>
       {activeTab === 'overview' && (
         <CommandOverview
-          onNavigateToCameraMatrix={() => setActiveTab('matrix')}
-          onNavigateToIncidents={() => setActiveTab('incidents')}
+          onNavigateToCameraMatrix={handleNavigateToMatrix}
+          onNavigateToIncidents={handleNavigateToIncidents}
           onOpenZoneEditorForCam={handleOpenZoneEditorForCam}
         />
       )}
 
       {activeTab === 'matrix' && (
-        <LiveMatrix onOpenZoneEditor={handleOpenZoneEditorForCam} />
+        <LiveMatrix
+          onOpenZoneEditor={handleOpenZoneEditorForCam}
+          selectedCameraContext={selectedCameraContext}
+        />
       )}
 
-      {activeTab === 'incidents' && <IncidentTimeline />}
+      {activeTab === 'incidents' && (
+        <IncidentTimeline initialSelectedAlert={selectedIncidentContext} />
+      )}
 
       {activeTab === 'search' && <EventSearch />}
 
@@ -47,9 +70,15 @@ function MainWorkspace() {
         <ZoneEditor initialCamera={zoneCameraContext} />
       )}
 
+      {activeTab === 'evidence' && <EvidenceTab />}
+
       {activeTab === 'health' && <SystemHealthPanel />}
 
       {activeTab === 'admin' && <AdminControls />}
+
+      {activeTab === 'operators' && <OperatorsPanel />}
+
+      {activeTab === 'audit' && <AuditLogPanel />}
 
       {selectedEvidenceId && (
         <EvidenceViewer
@@ -57,8 +86,6 @@ function MainWorkspace() {
           onClose={() => setSelectedEvidenceId(null)}
         />
       )}
-
-      <DemoControlWidget />
     </CommandShell>
   );
 }

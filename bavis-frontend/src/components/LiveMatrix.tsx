@@ -3,18 +3,20 @@ import type { Camera, Detection, Zone } from '../types/bavis';
 import { api } from '../api/client';
 import { useAlerts } from '../context/AlertContext';
 import { CameraTile } from './CameraTile';
+import { CameraDetailModal } from './CameraDetailModal';
 import { RealtimeAlertPanel } from './RealtimeAlertPanel';
 import { LayoutGrid, Grid, Square, Video } from 'lucide-react';
 
 interface LiveMatrixProps {
   onOpenZoneEditor: (camera: Camera) => void;
+  selectedCameraContext?: Camera | null;
 }
 
-export const LiveMatrix: React.FC<LiveMatrixProps> = ({ onOpenZoneEditor }) => {
+export const LiveMatrix: React.FC<LiveMatrixProps> = ({ onOpenZoneEditor, selectedCameraContext }) => {
   const [cameras, setCameras] = useState<Camera[]>([]);
   const [zones, setZones] = useState<Zone[]>([]);
   const [gridCount, setGridCount] = useState<1 | 4 | 9>(4);
-  const [focusedCamera, setFocusedCamera] = useState<Camera | null>(null);
+  const [inspectCamera, setInspectCamera] = useState<Camera | null>(null);
   const { latestDetection } = useAlerts();
 
   const [activeDetections, setActiveDetections] = useState<Detection[]>([]);
@@ -26,12 +28,15 @@ export const LiveMatrix: React.FC<LiveMatrixProps> = ({ onOpenZoneEditor }) => {
         const zoneData = await api.getZones();
         setCameras(camData);
         setZones(zoneData);
+        if (selectedCameraContext) {
+          setInspectCamera(selectedCameraContext);
+        }
       } catch (err) {
         console.error('Failed to load cameras or zones:', err);
       }
     };
     loadInitialData();
-  }, []);
+  }, [selectedCameraContext]);
 
   useEffect(() => {
     if (latestDetection) {
@@ -42,66 +47,48 @@ export const LiveMatrix: React.FC<LiveMatrixProps> = ({ onOpenZoneEditor }) => {
     }
   }, [latestDetection]);
 
-  const displayCameras = focusedCamera ? [focusedCamera] : cameras.slice(0, gridCount);
+  const displayCameras = cameras.slice(0, gridCount);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 h-full overflow-hidden select-none">
-      {/* Left 8 Cols: Multi-Camera Surveillance Wall */}
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-2.5 h-full overflow-hidden select-none font-mono">
+      {/* Left 8 Cols: Multi-Camera Surveillance Matrix */}
       <div className="lg:col-span-8 flex flex-col h-full overflow-hidden">
         {/* Matrix Toolbar */}
-        <div className="flex items-center justify-between px-3 py-1.5 bg-[var(--bg-panel-elevated)] border border-[var(--border-tactical)] rounded mb-2.5 transition-colors">
-          <div className="flex items-center gap-2 font-mono">
-            <Video className="w-3.5 h-3.5 text-cyan-500" />
+        <div className="flex items-center justify-between px-3 py-1.5 bg-[var(--bg-panel-elevated)] border border-[var(--border-tactical)] rounded mb-2">
+          <div className="flex items-center gap-2">
+            <Video className="w-3.5 h-3.5 text-cyan-400" />
             <h2 className="text-xs font-bold tracking-wider text-[var(--text-primary)] uppercase">
               LIVE SURVEILLANCE FEED MATRIX
             </h2>
-            <span className="text-[11px] text-cyan-600 font-semibold">
-              ({cameras.length} CAMERAS ONLINE)
+            <span className="text-[10px] text-cyan-400 font-semibold bg-cyan-950/80 px-1.5 py-0.2 rounded border border-cyan-800">
+              {cameras.length} CAMERAS ONLINE
             </span>
           </div>
 
           <div className="flex items-center gap-2">
-            {focusedCamera && (
-              <button
-                onClick={() => setFocusedCamera(null)}
-                className="px-2 py-0.5 rounded bg-cyan-950 border border-cyan-600 text-cyan-300 text-[10px] font-mono font-bold hover:bg-cyan-900 transition-all cursor-pointer"
-              >
-                ← EXIT SINGLE FOCUS
-              </button>
-            )}
-
             <div className="flex items-center bg-[var(--bg-panel-highlight)] border border-[var(--border-tactical)] rounded p-0.5">
               <button
-                onClick={() => {
-                  setFocusedCamera(null);
-                  setGridCount(1);
-                }}
+                onClick={() => setGridCount(1)}
                 className={`p-1.5 rounded cursor-pointer ${
-                  gridCount === 1 && !focusedCamera ? 'bg-cyan-950 text-cyan-400 font-bold border border-cyan-800' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                  gridCount === 1 ? 'bg-cyan-950 text-cyan-400 font-bold border border-cyan-800' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
                 }`}
                 title="Single Camera View"
               >
                 <Square className="w-3.5 h-3.5" />
               </button>
               <button
-                onClick={() => {
-                  setFocusedCamera(null);
-                  setGridCount(4);
-                }}
+                onClick={() => setGridCount(4)}
                 className={`p-1.5 rounded cursor-pointer ${
-                  gridCount === 4 && !focusedCamera ? 'bg-cyan-950 text-cyan-400 font-bold border border-cyan-800' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                  gridCount === 4 ? 'bg-cyan-950 text-cyan-400 font-bold border border-cyan-800' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
                 }`}
                 title="2x2 Quad Grid"
               >
                 <Grid className="w-3.5 h-3.5" />
               </button>
               <button
-                onClick={() => {
-                  setFocusedCamera(null);
-                  setGridCount(9);
-                }}
+                onClick={() => setGridCount(9)}
                 className={`p-1.5 rounded cursor-pointer ${
-                  gridCount === 9 && !focusedCamera ? 'bg-cyan-950 text-cyan-400 font-bold border border-cyan-800' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                  gridCount === 9 ? 'bg-cyan-950 text-cyan-400 font-bold border border-cyan-800' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
                 }`}
                 title="3x3 Dense Grid"
               >
@@ -113,7 +100,7 @@ export const LiveMatrix: React.FC<LiveMatrixProps> = ({ onOpenZoneEditor }) => {
 
         {/* Camera Grid Tiles Container */}
         <div
-          className={`flex-1 grid gap-2.5 overflow-y-auto ${
+          className={`flex-1 grid gap-2 overflow-y-auto ${
             displayCameras.length === 1
               ? 'grid-cols-1'
               : displayCameras.length <= 4
@@ -128,7 +115,7 @@ export const LiveMatrix: React.FC<LiveMatrixProps> = ({ onOpenZoneEditor }) => {
                 detections={activeDetections}
                 zones={zones}
                 onOpenZoneEditor={onOpenZoneEditor}
-                onMaximize={(c) => setFocusedCamera(c)}
+                onMaximize={(c) => setInspectCamera(c)}
               />
             </div>
           ))}
@@ -139,6 +126,17 @@ export const LiveMatrix: React.FC<LiveMatrixProps> = ({ onOpenZoneEditor }) => {
       <div className="lg:col-span-4 h-full overflow-hidden">
         <RealtimeAlertPanel />
       </div>
+
+      {/* Camera Detail Operational Telemetry Modal */}
+      {inspectCamera && (
+        <CameraDetailModal
+          camera={inspectCamera}
+          detections={activeDetections}
+          zones={zones}
+          onClose={() => setInspectCamera(null)}
+          onOpenZoneEditor={onOpenZoneEditor}
+        />
+      )}
     </div>
   );
 };
